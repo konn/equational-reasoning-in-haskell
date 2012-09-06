@@ -1,7 +1,7 @@
 {-# LANGUAGE PolyKinds, DataKinds, TypeFamilies, TypeOperators, GADTs, FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables, Rank2Types, StandaloneDeriving, ConstraintKinds #-}
-{-# LANGUAGE UndecidableInstances, OverlappingInstances #-}
-{-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 module Proof.Natural where
 import Proof.Base

@@ -1,7 +1,6 @@
-{-# LANGUAGE DataKinds, PolyKinds, GADTs, TypeFamilies, MultiParamTypeClasses, FlexibleContexts #-}
-{-# LANGUAGE TypeOperators, UndecidableInstances, ScopedTypeVariables, PatternGuards #-}
-{-# LANGUAGE StandaloneDeriving, TypeSynonymInstances, FlexibleInstances, ConstraintKinds #-}
-{-# LANGUAGE TemplateHaskell, RankNTypes #-}
+{-# LANGUAGE TypeOperators, UndecidableInstances, ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds, PolyKinds, GADTs, TypeFamilies, Rank2Types #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 module Proof.List where
 import Proof.Base
