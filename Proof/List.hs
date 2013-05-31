@@ -1,11 +1,12 @@
 {-# LANGUAGE TypeOperators, UndecidableInstances, ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds, PolyKinds, GADTs, TypeFamilies, Rank2Types #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ConstraintKinds, StandaloneDeriving, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, TemplateHaskell #-}
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 module Proof.List where
 import Proof.Base
 import Proof.Natural
-import Singletons.Lib
+import Data.Singletons
 import Prelude hiding ((+))
 
 singletons [d|
@@ -27,18 +28,37 @@ singletons [d|
   insSort (x:xs) = insert x (insSort xs)
  |]
 
+inductionL :: p '[] -> (forall x xs. (SList xs -> p xs) -> SList (x ': xs) -> p (x ': xs))
+           -> SList zs -> p zs
+inductionL nilCase _        SNil         = nilCase
+inductionL nilCase consCase (SCons x xs) = consCase (inductionL nilCase consCase) (sCons x xs)
+
+inductionL' :: forall p zs. Wrappable p
+            => Proxy p
+            -> BaseType p '[]
+            -> (forall x xs. (SList xs -> BaseType p xs) -> SList (x ': xs) -> BaseType p (x ': xs))
+            -> SList zs -> BaseType p zs
+inductionL' _ nilCase consCase = unWrap . inductionL (wrap nilCase) consCase'
+  where
+    consCase' :: (SList xs -> p xs) -> SList (x ': xs) -> p (x ': xs)
+    consCase' h = wrap . consCase (unWrap . h)
+
+type ConsCase p = forall n ns. (SList ns -> p ns) -> SList (n ': ns) -> p (n ': ns)
+
 data Increasing (xs :: [Nat]) where
   NilIncreasing    :: Increasing '[]
   SingletonIncreasing :: Increasing '[x]
   ConsIncreasing   :: x :<=: y -> Increasing (y ': ys) -> Increasing (x ': y ': ys)
 
 boolToPropIncreasing :: (IncreasingB xs ~ True) => SList xs -> Increasing xs
-boolToPropIncreasing SNil = NilIncreasing
-boolToPropIncreasing (SCons x SNil) = SingletonIncreasing
-boolToPropIncreasing xs0@(SCons x (SCons y xs)) =
-  case x %:<<= y of
-    STrue  -> ConsIncreasing (boolToPropLe x y) (boolToPropIncreasing (sCons y xs))
-    _      -> bugInGHC
+boolToPropIncreasing = inductionL NilIncreasing consCase
+  where
+    consCase :: ConsCase Increasing
+    consCase _ (SCons x SNil) = SingletonIncreasing
+    consCase hypo xs0@(SCons x (SCons y xs)) =
+      case x %:<<= y of
+        STrue  -> ConsIncreasing (boolToPropLe x y) (hypo (sCons y xs))
+        _      -> bugInGHC
 
 instance FromBool (Increasing xs) where
   type Predicate (Increasing xs) = IncreasingB xs
@@ -46,7 +66,7 @@ instance FromBool (Increasing xs) where
   fromBool = boolToPropIncreasing
 
 insPreservesIncreasing :: Sing x -> SList xs -> Increasing xs -> Increasing (Insert x xs)
-insPreservesIncreasing _ SNil _ = SingletonIncreasing
+insPreservesIncreasing x SNil _ = SingletonIncreasing
 insPreservesIncreasing (x :: Sing x) (SCons (y :: Sing y) ys) reason =
   case x %:<<= y of
     STrue  -> ConsIncreasing (boolToPropLe x y) reason
@@ -70,15 +90,24 @@ insSortIsIncreasing SNil         = NilIncreasing
 insSortIsIncreasing (SCons x xs) =
   insPreservesIncreasing x (sInsSort xs) (insSortIsIncreasing xs)
 
+reflPerm' :: forall xs. SingI xs => Proxy (xs :: [Nat]) -> Permutation xs xs
+reflPerm' Proxy = reflPerm sing
+
 data Permutation (xs :: [Nat]) (ys :: [Nat]) where
   NilPerm   :: Permutation '[] '[]
   HeadPerm  :: Permutation xs ys -> Permutation (x ': xs) (x ': ys)
   SwapPerm  :: Permutation (x ': y ': xs) (y ': x ': xs)
   TransPerm :: Permutation xs ys -> Permutation ys zs -> Permutation xs zs
 
+deriving instance Show (Permutation ns ms)
+
 reflPerm :: SList xs -> Permutation xs xs
 reflPerm SNil = NilPerm
 reflPerm (SCons _ xs) = HeadPerm (reflPerm xs)
+
+instance Preorder Permutation where
+  transitivity = TransPerm
+  reflexivity  = reflPerm
 
 sHeadPerm :: SNat x -> Permutation xs ys -> Permutation (x ': xs) (x ': ys)
 sHeadPerm _ = HeadPerm
@@ -88,10 +117,16 @@ insPermutation _ SNil = HeadPerm NilPerm
 insPermutation x (SCons y ys) =
   case x %:<<= y of
     STrue  -> reflPerm (sCons x (sCons y ys))
-    SFalse -> SwapPerm `TransPerm` sHeadPerm y (insPermutation x ys)
+    SFalse ->
+      start (sCons x (sCons y ys))
+        ==> sCons y (sCons x ys)      `because` SwapPerm
+        ==> sCons y (sInsert x ys)    `because` sHeadPerm y (insPermutation x ys)
+        =~= (sInsert x (sCons y ys))
 
 insSortPermutation :: SList xs -> Permutation xs (InsSort xs)
 insSortPermutation SNil         = NilPerm
 insSortPermutation (SCons x xs) =
-  HeadPerm (insSortPermutation xs)
-    `TransPerm` insPermutation x (sInsSort xs)
+  start (sCons x xs)
+    ==> sCons x (sInsSort xs)   `because` HeadPerm (insSortPermutation xs)
+    ==> sInsert x (sInsSort xs) `because` insPermutation x (sInsSort xs)
+    =~= sInsSort (sCons x xs)

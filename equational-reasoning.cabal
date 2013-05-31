@@ -16,4 +16,6 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:     Proof.Base, Proof.List, Proof.Natural
-  build-depends:       base ==4.6.*, singletons ==0.8.*
+  build-depends:       base       == 4.6.*
+               ,       singletons == 0.8.*
+               ,       tagged     == 0.6.*

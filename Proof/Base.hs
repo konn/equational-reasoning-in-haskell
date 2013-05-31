@@ -1,14 +1,15 @@
 {-# LANGUAGE DataKinds, GADTs, TypeOperators, TypeFamilies #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 {-# LANGUAGE PolyKinds, RankNTypes, TypeSynonymInstances, StandaloneDeriving #-}
-module Proof.Base ((:=:)(..), Equality(..), Sing
-                  ,(:\/:), (:/\:)
-                  , Reason(..), because, (===), start, byDefinition
+module Proof.Base ((:=:)(..), Equality(..), Preorder(..), Sing
+                  ,(:\/:), (:/\:), (==>), (=~=), Leibniz(..)
+                  , Reason(..), because, by, (===), start, byDefinition
                   , admitted, Proxy(..), cong, cong'
                   , Wrappable(..), SingI (..), SingE(..), (:~>), Map ()
-                  , SBool(..), (:&&:), (:||:), (%:&&), (%:||), FromBool (..)
+                  , SBool, (:&&:), (:||:), (%:&&), (%:||), FromBool (..)
                   ) where
-import Singletons.Lib
+import Data.Singletons
+import Data.Proxy
 
 infix 4 :=:
 type a :\/: b = Either a b
@@ -17,8 +18,6 @@ infixr 2 :\/:
 type a :/\: b = (a, b)
 infixr 3 :/\:
 
-data Proxy (a :: k) = Proxy
-
 data a :=: b where
   Refl :: a :=: a
 
@@ -26,22 +25,29 @@ data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 
 deriving instance Show (a :=: b)
 
-class Equality (eq :: k -> k -> *) where
-  reflexivity  :: Proxy a -> eq a a
-  symmetry     :: eq a b  -> eq b a
+class Preorder (eq :: k -> k -> *) where
+  reflexivity  :: Sing a -> eq a a
   transitivity :: eq a b  -> eq b c -> eq a c
 
-instance Equality (:=:) where
-  reflexivity  _         = Refl
-  symmetry     Refl      = Refl
-  transitivity Refl Refl = Refl
+class Preorder eq => Equality (eq :: k -> k -> *) where
+  symmetry     :: eq a b  -> eq b a
 
+instance Preorder (:=:) where
+  transitivity Refl Refl = Refl
+  reflexivity  _         = Refl
+
+instance Equality (:=:) where
+  symmetry     Refl      = Refl
+
+leibniz_refl :: Leibniz a a
 leibniz_refl = Leibniz id
 
-instance Equality Leibniz where
+instance Preorder Leibniz where
   reflexivity _ = leibniz_refl
-  symmetry eq  = unFlip $ apply eq $ Flip leibniz_refl
   transitivity (Leibniz aEqb) (Leibniz bEqc) = Leibniz $ bEqc . aEqb
+
+instance Equality Leibniz where
+  symmetry eq  = unFlip $ apply eq $ Flip leibniz_refl
 
 newtype Flip f a b = Flip { unFlip :: f b a }
 
@@ -52,21 +58,25 @@ by, because :: Sing y -> eq x y -> Reason eq x y
 because = Because
 by      = Because
 
-infixl 4 ===
+infixl 4 ===, ==>, =~=
 infix 5 `Because`
 infix 5 `because`
 
+(==>) :: Preorder r => r x y -> Reason r y z -> r x z
+eq ==> (_ `Because` eq') = transitivity eq eq'
+
 (===) :: Equality eq => eq x y -> Reason eq y z -> eq x z
-eq === (_ `Because` eq') = transitivity eq eq'
+(===) = (==>)
 
+(=~=) :: Preorder r => r x y -> Sing y -> r x y
+eq =~= y = eq
 
-start :: Equality eq => Sing a -> eq a a
-start _ = reflexivity Proxy
+start :: Preorder eq => Sing a -> eq a a
+start = reflexivity
 
-definition, byDefinition :: Equality eq => eq a a
-byDefinition = reflexivity Proxy
-definition = reflexivity Proxy
-
+definition, byDefinition :: (SingI a, Preorder eq) => eq a a
+byDefinition = reflexivity sing
+definition = reflexivity   sing
 
 admitted :: Reason eq x y
 admitted = undefined
