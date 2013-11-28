@@ -4,8 +4,10 @@
 module Proof.Equational ((:=:)(..), Equality(..), Preorder(..), reflexivity'
                         ,(:\/:), (:/\:), (=>=), (=~=), Leibniz(..)
                         , Reason(..), because, by, (===), start, byDefinition
-                        , admitted, Proxy(..), cong, cong', fromRefl
+                        , admitted, Proxy(..), cong, cong'
                         , Proposition(..), (:~>), FromBool (..)
+                          -- * Conversion between equalities
+                        , fromRefl, fromLeibniz, reflToLeibniz, leibnizToRefl
                           -- * Re-exported modules
                         , module Data.Singletons, module Data.Proxy
                         ) where
@@ -24,8 +26,17 @@ data a :=: b where
 
 data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 
+leibnizToRefl :: Leibniz a b -> a :=: b
+leibnizToRefl eq = apply eq Refl
+
+fromLeibniz :: (Preorder eq, SingRep a) => Leibniz a b -> eq a b
+fromLeibniz eq = apply eq (reflexivity sing)
+
 fromRefl :: (Preorder eq, SingRep b) => a :=: b -> eq a b
 fromRefl Refl = reflexivity'
+
+reflToLeibniz :: a :=: b -> Leibniz a b
+reflToLeibniz Refl = Leibniz id
 
 deriving instance Show (a :=: b)
 
