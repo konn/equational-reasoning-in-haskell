@@ -2,7 +2,7 @@
 --  documentation, see http://haskell.org/cabal/users-guide/
 
 name:                equational-reasoning
-version:             0.0.2.0
+version:             0.0.3.0
 synopsis:            Proof assistant for Haskell using DataKinds & PolyKinds
 -- description:         
 license:             BSD3
