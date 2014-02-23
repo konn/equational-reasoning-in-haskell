@@ -112,25 +112,18 @@ cong Proxy Refl = Refl
 cong' :: (Sing m -> Sing (f m)) -> a :=: b -> f a :=: f b
 cong' _ Refl =  Refl
 
--- | Type coercion. 'coerce' utilizes GHC's rewriting rule pragma,
--- and @coerce pf a@ is rewrriten to @unsafeCoerce a@.
+-- | Type coercion. 'coerce' is using @unsafeCoerce a@.
 -- So, please, please do not provide the @undefined@ as the proof.
--- Using this function instead of pattern-matching equality proof,
--- you can reduce the overhead introduced by compile-time proof.
+-- Using this function instead of pattern-matching on equality proof,
+-- you can reduce the overhead introduced by run-time proof.
 coerce :: (a :=: b) -> f a -> f b
-coerce Refl a = a
-{-# RULES
-"coerce/unsafeCoerce" forall (x :: (c :=: d)) (y :: f c) .
-                      coerce x y = unsafeCoerce y :: f d
- #-}
+coerce Refl a = unsafeCoerce a
+{-# INLINE coerce #-}
 
 -- | Coercion for identity types.
 coerce' :: a :=: b -> a -> b
-coerce' Refl a = a
-{-# RULES
-"coerce/unsafeCoerce" forall (x :: (c :=: d)) (y :: c) .
-                      coerce' x y = unsafeCoerce y :: d
- #-}
+coerce' Refl a = unsafeCoerce a
+{-# INLINE coerce' #-}
 
 class Proposition f where
   type OriginalProp f n :: *
