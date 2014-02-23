@@ -8,11 +8,14 @@ module Proof.Equational ((:=:)(..), Equality(..), Preorder(..), reflexivity'
                         , Proposition(..), (:~>), FromBool (..)
                           -- * Conversion between equalities
                         , fromRefl, fromLeibniz, reflToLeibniz, leibnizToRefl
+                          -- * Coercion
+                        , coerce, coerce'
                           -- * Re-exported modules
                         , module Data.Singletons, module Data.Proxy
                         ) where
 import Data.Proxy
 import Data.Singletons
+import Unsafe.Coerce
 
 infix 4 :=:
 type a :\/: b = Either a b
@@ -108,6 +111,26 @@ cong Proxy Refl = Refl
 
 cong' :: (Sing m -> Sing (f m)) -> a :=: b -> f a :=: f b
 cong' _ Refl =  Refl
+
+-- | Type coercion. 'coerce' utilizes GHC's rewriting rule pragma,
+-- and @coerce pf a@ is rewrriten to @unsafeCoerce a@.
+-- So, please, please do not provide the @undefined@ as the proof.
+-- Using this function instead of pattern-matching equality proof,
+-- you can reduce the overhead introduced by compile-time proof.
+coerce :: (a :=: b) -> f a -> f b
+coerce Refl a = a
+{-# RULES
+"coerce/unsafeCoerce" forall (x :: (c :=: d)) (y :: f c) .
+                      coerce x y = unsafeCoerce y :: f d
+ #-}
+
+-- | Coercion for identity types.
+coerce' :: a :=: b -> a -> b
+coerce' Refl a = a
+{-# RULES
+"coerce/unsafeCoerce" forall (x :: (c :=: d)) (y :: c) .
+                      coerce' x y = unsafeCoerce y :: d
+ #-}
 
 class Proposition f where
   type OriginalProp f n :: *
