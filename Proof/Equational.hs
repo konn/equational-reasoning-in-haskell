@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables, StandaloneDeriving, TypeFamilies     #-}
 {-# LANGUAGE TypeOperators, TypeSynonymInstances                       #-}
 module Proof.Equational ((:=:)(..), Equality(..), Preorder(..), reflexivity'
-                        ,(:\/:), (:/\:), (=>=), (=~=), Leibniz(..)
+                        ,(:\/:), (:/\:), (=<=), (=>=), (=~=), Leibniz(..)
                         , Reason(..), because, by, (===), start, byDefinition
                         , admitted, Proxy(..), cong, cong'
                         , Proposition(..), (:~>), FromBool (..)
@@ -83,15 +83,18 @@ by, because :: Sing y -> eq x y -> Reason eq x y
 because = Because
 by      = Because
 
-infixl 4 ===, =>=, =~=
+infixl 4 ===, =<=, =~=, =>=
 infix 5 `Because`
 infix 5 `because`
 
-(=>=) :: Preorder r => r x y -> Reason r y z -> r x z
-eq =>= (_ `Because` eq') = transitivity eq eq'
+(=<=) :: Preorder r => r x y -> Reason r y z -> r x z
+eq =<= (_ `Because` eq') = transitivity eq eq'
+
+(=>=) :: Preorder r => r y z -> Reason r x y -> r x z
+eq =>= (_ `Because` eq') = transitivity eq' eq
 
 (===) :: Equality eq => eq x y -> Reason eq y z -> eq x z
-(===) = (=>=)
+(===) = (=<=)
 
 (=~=) :: Preorder r => r x y -> Sing y -> r x y
 eq =~= _ = eq
