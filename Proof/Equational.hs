@@ -1,7 +1,13 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, GADTs, PolyKinds, RankNTypes #-}
+{-# LANGUAGE CPP, DataKinds, FlexibleContexts, GADTs, PolyKinds, RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables, StandaloneDeriving, TypeFamilies     #-}
 {-# LANGUAGE TypeOperators, TypeSynonymInstances                       #-}
-module Proof.Equational ((:=:)(..), Equality(..), Preorder(..), reflexivity'
+module Proof.Equational (
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+                         (:~:)(..), (:=:)
+#else
+                         (:=:)(..), (:~:)
+#endif
+                        , Equality(..), Preorder(..), reflexivity'
                         ,(:\/:), (:/\:), (=<=), (=>=), (=~=), Leibniz(..)
                         , Reason(..), because, by, (===), start, byDefinition
                         , admitted, Proxy(..), cong, cong'
@@ -16,6 +22,9 @@ module Proof.Equational ((:=:)(..), Equality(..), Preorder(..), reflexivity'
 import Data.Proxy
 import Data.Singletons
 import Unsafe.Coerce
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+import Data.Type.Equality
+#endif
 
 infix 4 :=:
 type a :\/: b = Either a b
@@ -24,8 +33,14 @@ infixr 2 :\/:
 type a :/\: b = (a, b)
 infixr 3 :/\:
 
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 707
 data a :=: b where
   Refl :: a :=: a
+type (:~:) = (:=:)
+#else
+type (:=:) = (:~:)
+#endif
+
 
 data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 
