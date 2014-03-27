@@ -44,6 +44,24 @@ trans Refl Refl = Refl
 
 sym :: a :=: b -> b :=: a
 sym Refl = Refl
+
+deriving instance Eq   (a :=: b)
+deriving instance Show (a :=: b)
+deriving instance Ord  (a :=: b)
+
+instance a ~ b => Read (a :=: b) where
+  readsPrec d = readParen (d > 10) (\r -> [(Refl, s) | ("Refl",s) <- lex r ])
+
+instance a ~ b => Enum (a :=: b) where
+  toEnum 0 = Refl
+  toEnum _ = error "toEnum: bad argument"
+
+  fromEnum Refl = 0
+
+instance a ~ b => Bounded (a :=: b) where
+  minBound = Refl
+  maxBound = Refl
+
 #else
 type (:=:) = (:~:)
 #endif
@@ -62,8 +80,6 @@ fromRefl Refl = reflexivity'
 
 reflToLeibniz :: a :=: b -> Leibniz a b
 reflToLeibniz Refl = Leibniz id
-
-deriving instance Show (a :=: b)
 
 class Preorder (eq :: k -> k -> *) where
   reflexivity  :: Sing a -> eq a a
