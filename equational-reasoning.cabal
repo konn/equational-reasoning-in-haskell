@@ -4,15 +4,19 @@
 name:                equational-reasoning
 version:             0.0.4.0
 synopsis:            Proof assistant for Haskell using DataKinds & PolyKinds
--- description:         
+description:         A simple convenient library to write equational / preorder proof as in Agda.
 license:             BSD3
 license-file:        LICENSE
 author:              Hiromi ISHII
 maintainer:          konn.jinro_at_gmail.com
--- copyright:           
+copyright:           (c) Hiromi ISHII 2013-2014
 category:            Math
 build-type:          Simple
 cabal-version:       >=1.8
+
+source-repository head
+    type: git
+    location: git://github.com/konn/equational-reasoning-in-haskell.git
 
 library
   exposed-modules:     Proof.Equational, Proof.Propositional, Proof.Induction
