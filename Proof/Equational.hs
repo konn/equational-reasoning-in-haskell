@@ -32,10 +32,10 @@ data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 leibnizToRefl :: Leibniz a b -> a :=: b
 leibnizToRefl eq = apply eq Refl
 
-fromLeibniz :: (Preorder eq, SingRep a) => Leibniz a b -> eq a b
+fromLeibniz :: (Preorder eq, SingI a) => Leibniz a b -> eq a b
 fromLeibniz eq = apply eq (reflexivity sing)
 
-fromRefl :: (Preorder eq, SingRep b) => a :=: b -> eq a b
+fromRefl :: (Preorder eq, SingI b) => a :=: b -> eq a b
 fromRefl Refl = reflexivity'
 
 reflToLeibniz :: a :=: b -> Leibniz a b
@@ -76,7 +76,7 @@ newtype Flip f a b = Flip { unFlip :: f b a }
 data Reason eq x y where
   Because :: Sing y -> eq x y -> Reason eq x y
 
-reflexivity' :: (SingRep x, Preorder r) => r x x
+reflexivity' :: (SingI x, Preorder r) => r x x
 reflexivity' = reflexivity sing
 
 by, because :: Sing y -> eq x y -> Reason eq x y
@@ -102,7 +102,7 @@ eq =~= _ = eq
 start :: Preorder eq => Sing a -> eq a a
 start = reflexivity
 
-byDefinition :: (SingRep a, Preorder eq) => eq a a
+byDefinition :: (SingI a, Preorder eq) => eq a a
 byDefinition = reflexivity sing
 
 admitted :: Reason eq x y
