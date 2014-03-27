@@ -32,3 +32,6 @@ script:
        exit 1;
     fi
  
+matrix:
+  allow_failures:
+    - env: GHCVER=head
