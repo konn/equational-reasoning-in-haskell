@@ -1,5 +1,6 @@
 Agda-style Equational Reasoning in Haskell by Data Kinds
 =========================================================
+[![Build Status](https://travis-ci.org/konn/equational-reasoning-in-haskell.svg)](https://travis-ci.org/konn/equational-reasoning-in-haskell)
 
 What is this?
 --------------
