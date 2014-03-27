@@ -7,6 +7,7 @@ module Proof.Equational (
 #else
                          (:=:)(..), (:~:)
 #endif
+                        , sym, trans
                         , Equality(..), Preorder(..), reflexivity'
                         ,(:\/:), (:/\:), (=<=), (=>=), (=~=), Leibniz(..)
                         , Reason(..), because, by, (===), start, byDefinition
@@ -23,7 +24,7 @@ import Data.Proxy
 import Data.Singletons
 import Unsafe.Coerce
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
-import Data.Type.Equality
+import Data.Type.Equality hiding (apply)
 #endif
 
 infix 4 :=:
@@ -37,6 +38,12 @@ infixr 3 :/\:
 data a :=: b where
   Refl :: a :=: a
 type (:~:) = (:=:)
+infix 4 :~:
+trans :: a :=: b -> b :=: c -> a :=: c
+trans Refl Refl = Refl
+
+sym :: a :=: b -> b :=: a
+sym Refl = Refl
 #else
 type (:=:) = (:~:)
 #endif
