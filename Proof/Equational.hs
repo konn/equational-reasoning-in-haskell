@@ -166,8 +166,13 @@ coerce' :: a :=: b -> a -> b
 coerce' Refl a = unsafeCoerce a
 {-# INLINE coerce' #-}
 
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 class Proposition (f :: k -> *) where
+  type OriginalProp (f :: k -> *) (n :: k) :: *    
+#else
+class Proposition f where
   type OriginalProp f n :: *
+#endif
   unWrap :: f n -> OriginalProp f n
   wrap   :: OriginalProp f n -> f n
 
