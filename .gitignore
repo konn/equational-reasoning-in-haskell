@@ -4,3 +4,5 @@
 .DS_Store
 dist
 *_Flymake.hs
+*.dyn_o
+*.dyn_hi
