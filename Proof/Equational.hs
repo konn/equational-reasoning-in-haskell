@@ -89,11 +89,17 @@ class Preorder eq => Equality (eq :: k -> k -> *) where
   symmetry     :: eq a b  -> eq b a
 
 instance Preorder (:=:) where
+  {-# SPECIALISE instance Preorder (:=:) #-}
   transitivity Refl Refl = Refl
+  {-# INLINE[1] transitivity #-}
+
   reflexivity  _         = Refl
+  {-# INLINE[1] reflexivity #-}
 
 instance Equality (:=:) where
+  {-# SPECIALISE instance Equality (:~:) #-}
   symmetry     Refl      = Refl
+  {-# INLINE[1] symmetry #-}
 
 instance Preorder (->) where
   reflexivity _ = id
@@ -128,11 +134,16 @@ infix 5 `because`
 (=<=) :: Preorder r => r x y -> Reason r y z -> r x z
 eq =<= (_ `Because` eq') = transitivity eq eq'
 
+{-# SPECIALISE INLINE[1] (=<=) :: x :~: y -> Reason (:~:) y z -> x :~: z #-}
+
 (=>=) :: Preorder r => r y z -> Reason r x y -> r x z
 eq =>= (_ `Because` eq') = transitivity eq' eq
 
+{-# SPECIALISE INLINE[1] (=>=) :: y :~: z -> Reason (:~:) x y -> x :~: z #-}
+
 (===) :: Equality eq => eq x y -> Reason eq y z -> eq x z
 (===) = (=<=)
+{-# SPECIALISE INLINE[1] (===) :: x :~: y -> Reason (:~:) y z -> x :~: z #-}
 
 (=~=) :: Preorder r => r x y -> Sing y -> r x y
 eq =~= _ = eq
@@ -159,12 +170,20 @@ cong' _ Refl =  Refl
 -- you can reduce the overhead introduced by run-time proof.
 coerce :: (a :=: b) -> f a -> f b
 coerce Refl a = unsafeCoerce a
-{-# INLINE coerce #-}
+{-# INLINE[1] coerce #-}
 
 -- | Coercion for identity types.
 coerce' :: a :=: b -> a -> b
 coerce' Refl a = unsafeCoerce a
-{-# INLINE coerce' #-}
+{-# INLINE[1] coerce' #-}
+
+{-# RULES
+"coerce/unsafeCoerce" forall xs.
+  coerce xs = unsafeCoerce
+"coerce'/unsafeCoerce" forall xs.
+  coerce' xs = unsafeCoerce
+  #-}
+
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 class Proposition (f :: k -> *) where
