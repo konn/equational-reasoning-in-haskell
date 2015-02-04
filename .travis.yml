@@ -2,12 +2,13 @@ env:
   global:
     secure: rRwJ4hbIrQHOB7dnk/rEvbI9ybyzkTKv4ycAc17f2GsXNM6s/l8piZa85o38qxkfopzU50JVLB4/QnaURH/cJoE4oR0GdPDiwMPeDHdPkiKX8RHjdj0kfBvguWckEM0PWumreD0ZU+prieGfY23tjoo4TsJk+e5HgeD1RfuzTa8=
   matrix:
-    include: 
-      - CABALVER=1.18 GHCVER=7.6.3
-      - CABALVER=1.18 GHCVER=7.8.4
-      - CABALVER=head GHCVER=head
-    allow_failures:
-      - env: GHCVER=head
+    - CABALVER=1.18 GHCVER=7.6.3
+    - CABALVER=1.18 GHCVER=7.8.4
+    - CABALVER=head GHCVER=head
+
+matrix:
+  allow_failures:
+    - env: GHCVER=head
 
 deploy:
   provider: hackage
