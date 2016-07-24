@@ -112,7 +112,7 @@ eq =>= (_ `Because` eq') = transitivity eq' eq
 (===) = (=<=)
 {-# SPECIALISE INLINE[1] (===) :: x :~: y -> Reason (:~:) y z -> x :~: z #-}
 
-(=~=) :: Preorder r => r x y -> Sing y -> r x y
+(=~=) :: r x y -> Sing y -> r x y
 eq =~= _ = eq
 
 start :: Preorder eq => Sing a -> eq a a
@@ -182,15 +182,12 @@ instance KnownTypeList '[] where
 instance KnownTypeList ts => KnownTypeList (t ': ts) where
   viewHVec' = HConsView Proxy viewHVec'
 
-viewHVec :: KnownTypeList ts => HVec ts -> HVecView ts
-viewHVec _ = viewHVec'
-
 newtype Magic (xs :: [*]) a = Magic { _viewHVec' :: KnownTypeList xs => a }
 
 withKnownTypeList :: forall a xs. HVecView xs -> (KnownTypeList xs => a) -> a
 withKnownTypeList xs f = (unsafeCoerce (Magic f :: Magic xs a) :: HVecView xs -> a) xs
 
-apply' :: (KnownTypeList ts) => HVecView ts -> (HVec ts -> c) -> ts :~> c
+apply' :: HVecView ts -> (HVec ts -> c) -> ts :~> c
 apply' HNilView f = f HNil
 apply' (HConsView Proxy ts) f = \a -> withKnownTypeList ts $
   apply' ts (\ts' -> f $ a :- ts')
@@ -206,5 +203,5 @@ class FromBool (c :: *) where
   type Args c :: [*]
   fromBool :: Predicate c ~ 'True => HVec (Args c) -> c
 
-fromBool' :: forall proxy c. (KnownTypeList (Args c), FromBool c , Predicate c ~ True) => proxy c -> Args c :~> c
+fromBool' :: forall proxy c. (KnownTypeList (Args c), FromBool c , Predicate c ~ 'True) => proxy c -> Args c :~> c
 fromBool' pxyc = applyNAry' (Proxy :: Proxy (Args c)) pxyc fromBool
