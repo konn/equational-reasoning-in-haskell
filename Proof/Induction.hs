@@ -21,7 +21,7 @@ capitalize _ = error "capitalize"
 genInduction :: Name -> String -> Q [Dec]
 genInduction typ fname0 = do
   let fname = mkName fname0
-  TyConI (normalizeDec -> DataD _ dName _ dCons _) <- reify typ
+  TyConI (normalizeDec -> DataDCompat _ dName _ dCons _) <- reify typ
   p <- newName "p"
   ans <- mapM (buildCase fname (length dCons) dName p) $ zip [0..] dCons
   let (cls, ts) = unzip ans
