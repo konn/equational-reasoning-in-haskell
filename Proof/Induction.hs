@@ -2,6 +2,8 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies, TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances, ViewPatterns                        #-}
 module Proof.Induction (genInduction) where
+import Proof.Internal.THCompat
+
 import Control.Applicative
 import Control.Monad
 import Data.Char
@@ -50,7 +52,7 @@ buildCase fname size dName p (nth, dCon) = do
   sig <- if null params then tbdy else forallT (map (either plainTV plainTV) eparams) (cxt []) tbdy
   cs <- replicateM size $ newName "case"
   let body | null subCases = varE (cs !! nth)
-           | otherwise = appsE $ varE (cs !! nth) : 
+           | otherwise = appsE $ varE (cs !! nth) :
                replicate (length subCases) (appsE $ varE fname : map varE cs)
                ++ [ appsE (varE ssName : map varE xs)]
   cl <- clause (map varP cs ++ [conP sName $ map varP xs]) (normalB body) []
@@ -87,6 +89,6 @@ getTyConName (PromotedT n) = Just n
 getTyConName _             = Nothing
 
 normalizeDec :: Dec -> Dec
-normalizeDec d@(DataD _ _ _ _ _) = d
-normalizeDec (NewtypeD ctx name tvbs con names) = DataD ctx name tvbs [con] names
+normalizeDec d@DataDCompat {} = d
+normalizeDec (NewtypeDCompat ctx name tvbs con names) = mkDataD ctx name tvbs [con] names
 normalizeDec _ = error "not data definition."

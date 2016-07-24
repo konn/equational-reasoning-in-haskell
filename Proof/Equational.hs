@@ -1,18 +1,17 @@
-{-# LANGUAGE CPP, DataKinds, FlexibleContexts, GADTs, PolyKinds, RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables, StandaloneDeriving, TypeFamilies          #-}
-{-# LANGUAGE TypeOperators, TypeSynonymInstances, KindSignatures            #-}
-module Proof.Equational (
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
-                         (:~:)(..), (:=:)
-#else
-                         (:=:)(..), (:~:)
+{-# LANGUAGE CPP, DataKinds, FlexibleContexts, GADTs, KindSignatures #-}
+{-# LANGUAGE PolyKinds, RankNTypes, ScopedTypeVariables              #-}
+{-# LANGUAGE StandaloneDeriving, TypeFamilies, TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances, UndecidableInstances              #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE ConstrainedClassMethods, TypeFamilyDependencies #-}
 #endif
+module Proof.Equational ( (:~:)(..), (:=:)
                         , sym, trans
                         , Equality(..), Preorder(..), reflexivity'
-                        ,(:\/:), (:/\:), (=<=), (=>=), (=~=), Leibniz(..)
+                        , (:\/:), (:/\:), (=<=), (=>=), (=~=), Leibniz(..)
                         , Reason(..), because, by, (===), start, byDefinition
                         , admitted, Proxy(..), cong, cong'
-                        , Proposition(..), (:~>), FromBool (..)
+                        , Proposition(..), HVec(..), FromBool (..)
                           -- * Conversion between equalities
                         , fromRefl, fromLeibniz, reflToLeibniz, leibnizToRefl
                           -- * Coercion
@@ -22,10 +21,8 @@ module Proof.Equational (
                         ) where
 import Data.Proxy
 import Data.Singletons
-import Unsafe.Coerce
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 import Data.Type.Equality hiding (apply)
-#endif
+import Unsafe.Coerce
 
 infix 4 :=:
 type a :\/: b = Either a b
@@ -34,38 +31,7 @@ infixr 2 :\/:
 type a :/\: b = (a, b)
 infixr 3 :/\:
 
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 707
-data a :=: b where
-  Refl :: a :=: a
-type (:~:) = (:=:)
-infix 4 :~:
-trans :: a :=: b -> b :=: c -> a :=: c
-trans Refl Refl = Refl
-
-sym :: a :=: b -> b :=: a
-sym Refl = Refl
-
-deriving instance Eq   (a :=: b)
-deriving instance Show (a :=: b)
-deriving instance Ord  (a :=: b)
-
-instance a ~ b => Read (a :=: b) where
-  readsPrec d = readParen (d > 10) (\r -> [(Refl, s) | ("Refl",s) <- lex r ])
-
-instance a ~ b => Enum (a :=: b) where
-  toEnum 0 = Refl
-  toEnum _ = error "toEnum: bad argument"
-
-  fromEnum Refl = 0
-
-instance a ~ b => Bounded (a :=: b) where
-  minBound = Refl
-  maxBound = Refl
-
-#else
 type (:=:) = (:~:)
-#endif
-
 
 data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 
@@ -184,24 +150,60 @@ coerce' Refl a = unsafeCoerce a
   coerce' xs = unsafeCoerce
   #-}
 
-
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 class Proposition (f :: k -> *) where
-  type OriginalProp (f :: k -> *) (n :: k) :: *    
-#else
-class Proposition f where
-  type OriginalProp f n :: *
-#endif
+  type OriginalProp (f :: k -> *) (n :: k) :: *
   unWrap :: f n -> OriginalProp f n
   wrap   :: OriginalProp f n -> f n
 
-type family   (xs :: [*]) :~> (a :: *) :: *
-type instance '[]       :~> a = a
-type instance (x ': xs) :~> a = x -> (xs :~> a)
+data HVec (xs :: [*]) where
+  HNil :: HVec '[]
+  (:-) :: x -> HVec xs -> HVec (x ': xs)
+
+infixr 9 :-
+type family (xs :: [*]) :~> (a :: *) :: * where
+  '[]       :~> a = a
+  (x ': xs) :~> a = x -> (xs :~> a)
 
 infixr 1 :~>
+
+data HVecView (xs :: [*]) :: * where
+  HNilView  :: HVecView '[]
+  HConsView :: Proxy t -> HVecView ts -> HVecView (t ': ts)
+
+deriving instance Show (HVecView xs)
+
+class KnownTypeList (xs :: [*]) where
+  viewHVec' :: HVecView xs
+
+instance KnownTypeList '[] where
+  viewHVec' = HNilView
+
+instance KnownTypeList ts => KnownTypeList (t ': ts) where
+  viewHVec' = HConsView Proxy viewHVec'
+
+viewHVec :: KnownTypeList ts => HVec ts -> HVecView ts
+viewHVec _ = viewHVec'
+
+newtype Magic (xs :: [*]) a = Magic { _viewHVec' :: KnownTypeList xs => a }
+
+withKnownTypeList :: forall a xs. HVecView xs -> (KnownTypeList xs => a) -> a
+withKnownTypeList xs f = (unsafeCoerce (Magic f :: Magic xs a) :: HVecView xs -> a) xs
+
+apply' :: (KnownTypeList ts) => HVecView ts -> (HVec ts -> c) -> ts :~> c
+apply' HNilView f = f HNil
+apply' (HConsView Proxy ts) f = \a -> withKnownTypeList ts $
+  apply' ts (\ts' -> f $ a :- ts')
+
+applyNAry :: forall ts c. KnownTypeList ts => (HVec ts -> c) -> ts :~> c
+applyNAry = apply' (viewHVec' :: HVecView ts)
+
+applyNAry' :: KnownTypeList ts => proxy ts -> proxy' c -> (HVec ts -> c) -> ts :~> c
+applyNAry' _ _ = applyNAry
 
 class FromBool (c :: *) where
   type Predicate c :: Bool
   type Args c :: [*]
-  fromBool :: Predicate c ~ True => Args c :~> c
+  fromBool :: Predicate c ~ 'True => HVec (Args c) -> c
+
+fromBool' :: forall proxy c. (KnownTypeList (Args c), FromBool c , Predicate c ~ True) => proxy c -> Args c :~> c
+fromBool' pxyc = applyNAry' (Proxy :: Proxy (Args c)) pxyc fromBool
