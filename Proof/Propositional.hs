@@ -8,7 +8,16 @@ module Proof.Propositional
        , orIntroR, orElim, andIntro, andElimL
        , andElimR, orAssocL, orAssocR
        , andAssocL, andAssocR, IsTrue(..)
+       , Empty(..)
+       , refute
+       , Inhabited (..)
+       , prove
        ) where
+import Proof.Propositional.Empty
+import Proof.Propositional.Inhabited
+import Proof.Propositional.TH
+
+import Data.Type.Equality ((:~:))
 import Data.Void
 
 type a /\ b = (a, b)
@@ -61,3 +70,21 @@ orAssocR (Right c)        = Right (Right c)
 data IsTrue (b :: Bool) where
   Witness :: IsTrue 'True
 
+instance {-# OVERLAPPABLE #-} (Inhabited a, Empty b) => Empty (a -> b) where
+  eliminate f = eliminate (f trivial)
+
+refute [t| 0 :~: 1 |]
+refute [t| () :~: Int |]
+
+prove [t| Bool |]
+prove [t| Int |]
+prove [t| Integer |]
+prove [t| Word |]
+prove [t| Double |]
+prove [t| Float |]
+prove [t| Char |]
+prove [t| Ordering |]
+prove [t| forall a. [a] |]
+prove [t| Rational |]
+prove [t| forall a. Maybe a |]
+prove [t| forall n. n :~: n |]
