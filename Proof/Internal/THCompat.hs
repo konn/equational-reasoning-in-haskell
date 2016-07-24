@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP, PatternSynonyms, TemplateHaskell, ViewPatterns #-}
 module Proof.Internal.THCompat where
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
+
 import GHC.Exts (Constraint)
 
 mkDataD :: Cxt -> Name -> [TyVarBndr] -> [Con] -> [Name] -> Dec
-mkDataD cxt name tvbndrs cons names =
-  DataD cxt name tvbndrs
+mkDataD ctx name tvbndrs cons names =
+  DataD ctx name tvbndrs
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 800
         Nothing cons (map ConT names)
 #else
@@ -29,16 +29,16 @@ typeName PromotedConsT = '(:)
 typeName ConstraintT = ''Constraint
 typeName _ = error "No names!"
 
-pattern DataDCompat cxt name tvbndrs cons names <-
-  DataD cxt name tvbndrs
+pattern DataDCompat ctx name tvbndrs cons names <-
+  DataD ctx name tvbndrs
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 800
         _ cons (map typeName -> names)
 #else
         cons names
 #endif
 
-pattern NewtypeDCompat cxt name tvbndrs con names <-
-  NewtypeD cxt name tvbndrs
+pattern NewtypeDCompat ctx name tvbndrs con names <-
+  NewtypeD ctx name tvbndrs
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 800
         _ con (map typeName -> names)
 #else
