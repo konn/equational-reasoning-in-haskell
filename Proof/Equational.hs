@@ -12,6 +12,7 @@ module Proof.Equational ( (:~:)(..), (:=:)
                         , Reason(..), because, by, (===), start, byDefinition
                         , admitted, Proxy(..), cong, cong'
                         , Proposition(..), HVec(..), FromBool (..)
+                        , applyNAry, applyNAry', fromBool'
                           -- * Conversion between equalities
                         , fromRefl, fromLeibniz, reflToLeibniz, leibnizToRefl
                           -- * Coercion
