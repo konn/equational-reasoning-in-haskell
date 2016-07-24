@@ -1,10 +1,14 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds, EmptyCase, ExplicitForAll, ExplicitNamespaces #-}
+{-# LANGUAGE FlexibleInstances, GADTs, KindSignatures, PolyKinds      #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators                           #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Provides type synonyms for logical connectives.
-module Proof.Propositional ( type (/\), type (\/), Not, exfalso, orIntroL
-                           , orIntroR, orElim, andIntro, andElimL
-                           , andElimR, orAssocL, orAssocR
-                           , andAssocL, andAssocR
-                           ) where
+module Proof.Propositional
+       ( type (/\), type (\/), Not, exfalso, orIntroL
+       , orIntroR, orElim, andIntro, andElimL
+       , andElimR, orAssocL, orAssocR
+       , andAssocL, andAssocR, IsTrue(..)
+       ) where
 import Data.Void
 
 type a /\ b = (a, b)
@@ -50,3 +54,10 @@ orAssocR :: (a \/ b) \/ c -> a \/ (b \/ c)
 orAssocR (Left (Left a))  = Left a
 orAssocR (Left (Right b)) = Right (Left b)
 orAssocR (Right c)        = Right (Right c)
+
+
+-- | Utility type to convert type-level (@'Bool'@-valued) predicate function
+--   into concrete witness data-type.
+data IsTrue (b :: Bool) where
+  Witness :: IsTrue 'True
+
