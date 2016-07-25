@@ -21,10 +21,10 @@ source-repository head
 
 library
   exposed-modules:     Proof.Equational, Proof.Propositional, Proof.Induction
-  other-modules:       Proof.Internal.THCompat
-                     , Proof.Propositional.Empty
-                     , Proof.Propositional.TH
                      , Proof.Propositional.Inhabited
+                     , Proof.Propositional.Empty
+  other-modules:       Proof.Internal.THCompat
+                     , Proof.Propositional.TH
   ghc-options:         -Wall
   build-depends:       base             >= 4      && < 5
                      , containers       >= 0.5
