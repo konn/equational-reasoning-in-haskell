@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds, EmptyCase, ExplicitForAll, ExplicitNamespaces #-}
-{-# LANGUAGE FlexibleInstances, GADTs, KindSignatures, LambdaCase     #-}
-{-# LANGUAGE PolyKinds, TemplateHaskell, TypeOperators                #-}
+{-# LANGUAGE DataKinds, DeriveDataTypeable, EmptyCase, ExplicitForAll     #-}
+{-# LANGUAGE ExplicitNamespaces, FlexibleInstances, GADTs, KindSignatures #-}
+{-# LANGUAGE LambdaCase, PolyKinds, StandaloneDeriving, TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators                                                #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Provides type synonyms for logical connectives.
 module Proof.Propositional
@@ -17,7 +18,9 @@ import Proof.Propositional.Empty
 import Proof.Propositional.Inhabited
 import Proof.Propositional.TH
 
+import Data.Data          (Data)
 import Data.Type.Equality ((:~:))
+import Data.Typeable      (Typeable)
 import Data.Void
 
 type a /\ b = (a, b)
@@ -70,6 +73,13 @@ orAssocR (Right c)        = Right (Right c)
 data IsTrue (b :: Bool) where
   Witness :: IsTrue 'True
 
+deriving instance Show (IsTrue b)
+deriving instance Eq   (IsTrue b)
+deriving instance Ord  (IsTrue b)
+deriving instance Read (IsTrue 'True)
+deriving instance Typeable IsTrue
+deriving instance Data (IsTrue 'True)
+
 instance {-# OVERLAPPABLE #-} (Inhabited a, Empty b) => Empty (a -> b) where
   eliminate f = eliminate (f trivial)
 
@@ -92,4 +102,3 @@ prove [t| IsTrue 'True |]
 
 instance Empty (IsTrue 'False) where
   eliminate = \ case {}
-
