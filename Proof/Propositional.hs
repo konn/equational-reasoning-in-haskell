@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds, EmptyCase, ExplicitForAll, ExplicitNamespaces #-}
-{-# LANGUAGE FlexibleInstances, GADTs, KindSignatures, PolyKinds      #-}
-{-# LANGUAGE TemplateHaskell, TypeOperators                           #-}
+{-# LANGUAGE FlexibleInstances, GADTs, KindSignatures, LambdaCase     #-}
+{-# LANGUAGE PolyKinds, TemplateHaskell, TypeOperators                #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Provides type synonyms for logical connectives.
 module Proof.Propositional
@@ -88,3 +88,8 @@ prove [t| forall a. [a] |]
 prove [t| Rational |]
 prove [t| forall a. Maybe a |]
 prove [t| forall n. n :~: n |]
+prove [t| IsTrue 'True |]
+
+instance Empty (IsTrue 'False) where
+  eliminate = \ case {}
+
