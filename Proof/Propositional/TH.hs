@@ -5,31 +5,25 @@ import Proof.Propositional.Empty
 import Proof.Propositional.Inhabited
 
 import           Control.Arrow               (Kleisli (..), second)
-import           Control.Monad               (forM)
-import           Control.Monad               (zipWithM)
+import           Control.Monad               (forM, zipWithM)
 import           Data.Foldable               (asum)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as M
 import           Data.Maybe                  (fromJust)
 import           Data.Monoid                 ((<>))
 import           Data.Type.Equality          ((:~:) (..))
-import           Language.Haskell.TH         (DecsQ, Name, Q, TypeQ, isInstance)
-import           Language.Haskell.TH         (newName)
-import           Language.Haskell.TH         (ppr)
-import           Language.Haskell.TH         (Lit (CharL, IntegerL))
+import           Language.Haskell.TH         (DecsQ, Lit (CharL, IntegerL))
+import           Language.Haskell.TH         (Name, Q, TypeQ, isInstance)
+import           Language.Haskell.TH         (newName, ppr)
 import           Language.Haskell.TH.Desugar (DClause (..), DCon (..))
 import           Language.Haskell.TH.Desugar (DConFields (..), DCxt, DDec (..))
-import           Language.Haskell.TH.Desugar (DExp (DAppE, DVarE), DInfo (..))
+import           Language.Haskell.TH.Desugar (DExp (..), DInfo (..))
 import           Language.Haskell.TH.Desugar (DLetDec (DFunD))
-import           Language.Haskell.TH.Desugar (DPat (DConPa, DVarPa))
+import           Language.Haskell.TH.Desugar (DPat (DConPa, DVarPa), DPred (..))
 import           Language.Haskell.TH.Desugar (DTyVarBndr (..), DType (..))
 import           Language.Haskell.TH.Desugar (Overlap (Overlapping), desugar)
 import           Language.Haskell.TH.Desugar (dsReify, expandType, substTy)
 import           Language.Haskell.TH.Desugar (sweeten)
-import           Language.Haskell.TH.Desugar (DPred (..))
-import           Language.Haskell.TH.Desugar (DExp (DCaseE, DLamE))
-import           Language.Haskell.TH.Desugar (DExp (DConE))
-import           Language.Haskell.TH.Desugar (DExp (DLitE))
 
 
 -- | Macro to automatically derive @'Empty'@ instance for
