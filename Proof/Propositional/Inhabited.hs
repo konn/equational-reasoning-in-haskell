@@ -1,9 +1,11 @@
-{-# LANGUAGE DataKinds, DefaultSignatures, DeriveAnyClass, EmptyCase #-}
-{-# LANGUAGE ExplicitNamespaces, FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE GADTs, KindSignatures, LambdaCase, PolyKinds            #-}
-{-# LANGUAGE StandaloneDeriving, TupleSections, TypeOperators        #-}
-module Proof.Propositional.Inhabited where
+{-# LANGUAGE DataKinds, DefaultSignatures, DeriveAnyClass, EmptyCase  #-}
+{-# LANGUAGE ExplicitNamespaces, FlexibleContexts, FlexibleInstances  #-}
+{-# LANGUAGE GADTs, KindSignatures, LambdaCase, PolyKinds, RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables, StandaloneDeriving, TupleSections   #-}
+{-# LANGUAGE TypeOperators                                            #-}
+module Proof.Propositional.Inhabited (Inhabited(..), withInhabited) where
 import GHC.Generics
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | Types with at least one inhabitant, dual to @'Proof.Propositional.Empty'@.
 -- | Current GHC doesn't provide selective-instance,
@@ -42,3 +44,8 @@ deriving instance (Inhabited a, Inhabited b, Inhabited c, Inhabited d) => Inhabi
 
 instance Inhabited b => Inhabited (a -> b) where
   trivial = const trivial
+
+newtype MagicInhabited a b = MagicInhabited (Inhabited a => b)
+
+withInhabited :: forall a b. a -> (Inhabited a => b) -> b
+withInhabited wit k = unsafeCoerce (MagicInhabited k :: MagicInhabited a b) wit

@@ -1,10 +1,12 @@
+{-# LANGUAGE RankNTypes, ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds, DefaultSignatures, DeriveAnyClass, EmptyCase #-}
 {-# LANGUAGE ExplicitNamespaces, FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE GADTs, KindSignatures, LambdaCase, PolyKinds            #-}
 {-# LANGUAGE StandaloneDeriving, TupleSections, TypeOperators        #-}
-module Proof.Propositional.Empty where
-import Data.Void          (Void)
+module Proof.Propositional.Empty (Empty(..), withEmpty, withEmpty') where
+import Data.Void          (Void, absurd)
 import GHC.Generics
+import Unsafe.Coerce      (unsafeCoerce)
 
 -- | Type-class for types without inhabitants, dual to @'Proof.Propositional.Inhabited'@.
 --   Current GHC doesn't provide selective-instance,
@@ -39,3 +41,19 @@ instance GEmpty V1 where
 
 deriving instance (Empty a, Empty b) => Empty (Either a b)
 deriving instance Empty Void
+
+newtype MagicEmpty e a = MagicEmpty (Empty e => a)
+
+-- | Giving falsity witness by proving @'Void'@ from @a@.
+--   See also 'withEmpty''.
+--
+--   Since 0.4.0.0
+withEmpty :: forall a b. (a -> Void) -> (Empty a => b) -> b
+withEmpty neg k = unsafeCoerce (MagicEmpty k :: MagicEmpty a b) (absurd . neg)
+
+-- | Giving falsity witness by showing @a@ entails everything.
+--   See also 'withEmpty'.
+--
+--   Since 0.4.0.0
+withEmpty' :: forall a b. (forall c. a -> c) -> (Empty a => b) -> b
+withEmpty' neg k = unsafeCoerce (MagicEmpty k :: MagicEmpty a b) neg

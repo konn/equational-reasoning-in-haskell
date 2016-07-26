@@ -9,9 +9,9 @@ module Proof.Propositional
        , orIntroR, orElim, andIntro, andElimL
        , andElimR, orAssocL, orAssocR
        , andAssocL, andAssocR, IsTrue(..)
-       , Empty(..)
+       , Empty(..), withEmpty, withEmpty'
        , refute
-       , Inhabited (..)
+       , Inhabited (..), withInhabited
        , prove
        ) where
 import Proof.Propositional.Empty
