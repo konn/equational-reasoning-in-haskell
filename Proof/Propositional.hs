@@ -8,7 +8,7 @@ module Proof.Propositional
        ( type (/\), type (\/), Not, exfalso, orIntroL
        , orIntroR, orElim, andIntro, andElimL
        , andElimR, orAssocL, orAssocR
-       , andAssocL, andAssocR, IsTrue(..)
+       , andAssocL, andAssocR, IsTrue(..), withWitness
        , Empty(..), withEmpty, withEmpty'
        , refute
        , Inhabited (..), withInhabited
