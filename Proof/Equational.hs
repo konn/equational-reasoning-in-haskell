@@ -16,7 +16,7 @@ module Proof.Equational ( (:~:)(..), (:=:)
                           -- * Conversion between equalities
                         , fromRefl, fromLeibniz, reflToLeibniz, leibnizToRefl
                           -- * Coercion
-                        , coerce, coerce'
+                        , coerce, coerce', withRefl
                           -- * Re-exported modules
                         , module Data.Singletons, module Data.Proxy
                         ) where
@@ -136,19 +136,31 @@ cong' _ Refl =  Refl
 -- Using this function instead of pattern-matching on equality proof,
 -- you can reduce the overhead introduced by run-time proof.
 coerce :: (a :=: b) -> f a -> f b
-coerce Refl a = unsafeCoerce a
+coerce _ a = unsafeCoerce a
 {-# INLINE[1] coerce #-}
 
 -- | Coercion for identity types.
 coerce' :: a :=: b -> a -> b
-coerce' Refl a = unsafeCoerce a
+coerce' _ a = unsafeCoerce a
 {-# INLINE[1] coerce' #-}
 
 {-# RULES
-"coerce/unsafeCoerce" forall xs.
+"coerce/unsafeCoerce" [~1] forall xs.
   coerce xs = unsafeCoerce
-"coerce'/unsafeCoerce" forall xs.
+"coerce'/unsafeCoerce" [~1] forall xs.
   coerce' xs = unsafeCoerce
+  #-}
+
+-- | Solves equality constraint without explicit coercion.
+--   It has the same effect as @'Data.Type.Equality.gcastWith'@,
+--   but some hacks is done to reduce runtime overhead.
+withRefl :: forall a b r. a :~: b -> (a ~ b => r) -> r
+withRefl _ r = case unsafeCoerce (Refl :: () :~: ()) :: a :~: b of
+  Refl -> r
+{-# INLINE [1] withRefl #-}
+{-# RULES
+"withRefl/unsafeCoerce" [~1] forall x.
+  withRefl x = unsafeCoerce
   #-}
 
 class Proposition (f :: k -> *) where

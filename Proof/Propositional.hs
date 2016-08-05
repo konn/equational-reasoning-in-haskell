@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds, DeriveDataTypeable, EmptyCase, ExplicitForAll     #-}
 {-# LANGUAGE ExplicitNamespaces, FlexibleInstances, GADTs, KindSignatures #-}
 {-# LANGUAGE LambdaCase, PolyKinds, StandaloneDeriving, TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators                                                #-}
+{-# LANGUAGE TypeOperators, RankNTypes                                    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Provides type synonyms for logical connectives.
 module Proof.Propositional
@@ -22,6 +22,7 @@ import Data.Data          (Data)
 import Data.Type.Equality ((:~:))
 import Data.Typeable      (Typeable)
 import Data.Void
+import Unsafe.Coerce
 
 type a /\ b = (a, b)
 type a \/ b = Either a b
@@ -73,6 +74,14 @@ orAssocR (Right c)        = Right (Right c)
 data IsTrue (b :: Bool) where
   Witness :: IsTrue 'True
 
+withWitness :: IsTrue b -> (b ~ 'True => r) -> r
+withWitness Witness r = r
+{-# INLINE [1] withWitness #-}
+{-# RULES
+"withWitness/coercion" [~1] forall x.
+  withWitness x = unsafeCoerce
+  #-}
+
 deriving instance Show (IsTrue b)
 deriving instance Eq   (IsTrue b)
 deriving instance Ord  (IsTrue b)
@@ -85,6 +94,14 @@ instance {-# OVERLAPPABLE #-} (Inhabited a, Empty b) => Empty (a -> b) where
 
 refute [t| 0 :~: 1 |]
 refute [t| () :~: Int |]
+refute [t| 'True :~: 'False |]
+refute [t| 'False :~: 'True |]
+refute [t| 'LT :~: 'GT |]
+refute [t| 'LT :~: 'EQ |]
+refute [t| 'EQ :~: 'LT |]
+refute [t| 'EQ :~: 'GT |]
+refute [t| 'GT :~: 'LT |]
+refute [t| 'GT :~: 'EQ |]
 
 prove [t| Bool |]
 prove [t| Int |]
