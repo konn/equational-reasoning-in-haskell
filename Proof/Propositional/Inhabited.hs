@@ -8,15 +8,21 @@ import GHC.Generics
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Types with at least one inhabitant, dual to @'Proof.Propositional.Empty'@.
--- | Current GHC doesn't provide selective-instance,
---   hence we don't @'Empty'@ provide instances
---   for sum types in a generic deriving (DeriveAnyClass).
+--   Currently, GHC doesn't provide a selective-instance,
+--   hence we can't generically derive @'Inhabited'@ instances
+--   for sum types (i.e. by @DeriveAnyClass@).
 --
 --   To derive an instance for each concrete types,
 --   use @'Proof.Propositional.prove'@.
 --
 --   Since 0.4.0.0.
 class Inhabited a where
+  -- | A /generic/ inhabitant of type @'a'@, which means that
+  --   one cannot assume anything about the value of @'trivial'@
+  --   except that it
+  --
+  --   * is of type @a@, and
+  --   * doesn't contain any partial values.
   trivial :: a
 
   default trivial :: (Generic a, GInhabited (Rep a)) => a
