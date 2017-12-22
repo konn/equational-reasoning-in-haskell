@@ -10,7 +10,7 @@ import           Data.Foldable               (asum)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as M
 import           Data.Maybe                  (fromJust)
-import           Data.Monoid                 ((<>))
+import           Data.Semigroup              (Semigroup (..))
 import           Data.Type.Equality          ((:~:) (..))
 import           Language.Haskell.TH         (DecsQ, Lit (CharL, IntegerL))
 import           Language.Haskell.TH         (Name, Q, TypeQ, isInstance)
@@ -111,7 +111,7 @@ buildProveClause  =
 
 fieldsVars :: DConFields -> [DType]
 fieldsVars (DNormalC fs) = map snd fs
-fieldsVars (DRecC fs) = map (\(_,_,c) -> c) fs
+fieldsVars (DRecC fs)    = map (\(_,_,c) -> c) fs
 
 resolveSubsts :: [DType] -> DInfo -> Q (DCxt, [DCon])
 resolveSubsts args info = do
@@ -140,7 +140,7 @@ substFields subst (DRecC fs) =
   DRecC <$> forM fs (\(a,b,c) -> (a, b ,) <$> substTy subst c)
 
 dtvbToName :: DTyVarBndr -> Name
-dtvbToName (DPlainTV n) = n
+dtvbToName (DPlainTV n)    = n
 dtvbToName (DKindedTV n _) = n
 
 splitType :: DType -> Maybe ([Name], Name, [DType])
@@ -157,12 +157,14 @@ splitType DStarT = Nothing
 data EqlJudge = NonEqual | Undecidable | Equal
               deriving (Read, Show, Eq, Ord)
 
-instance Monoid EqlJudge where
-  NonEqual    `mappend` _        = NonEqual
-  Undecidable `mappend` NonEqual = NonEqual
-  Undecidable `mappend` _        = Undecidable
-  Equal       `mappend` m        = m
+instance Semigroup EqlJudge where
+  NonEqual    <> _        = NonEqual
+  Undecidable <> NonEqual = NonEqual
+  Undecidable <> _        = Undecidable
+  Equal       <> m        = m
 
+instance Monoid EqlJudge where
+  mappend = (<>)
   mempty = Equal
 
 compareType :: DType -> DType -> Q EqlJudge

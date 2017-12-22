@@ -1,21 +1,21 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, GADTs, PolyKinds, RankNTypes #-}
-{-# LANGUAGE TemplateHaskell, TypeFamilies, TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances, ViewPatterns                        #-}
+{-# LANGUAGE DataKinds, ExplicitNamespaces, FlexibleContexts, GADTs #-}
+{-# LANGUAGE PolyKinds, RankNTypes, TemplateHaskell, TypeFamilies   #-}
+{-# LANGUAGE TypeOperators, UndecidableInstances, ViewPatterns      #-}
 module Proof.Induction (genInduction) where
 import Proof.Internal.THCompat
 
-import Control.Applicative
-import Control.Monad
-import Data.Char
-import Data.Either
-import Data.List
-import Data.Singletons
-import Language.Haskell.TH
-import Language.Haskell.TH.Lib
-
-capitalize :: String -> String
-capitalize (x :xs) = toUpper x : xs
-capitalize _ = error "capitalize"
+import Control.Monad           (forM, replicateM)
+import Data.Either             (rights)
+import Data.Singletons         (Sing)
+import Language.Haskell.TH     (Clause, Con (ForallC, InfixC, NormalC, RecC))
+import Language.Haskell.TH     (TypeQ, appT, appT, appsE, appsE, arrowT, arrowT)
+import Language.Haskell.TH     (clause, clause, conP, conP, cxt, cxt, forallT)
+import Language.Haskell.TH     (funD, funD, mkName, nameBase, newName)
+import Language.Haskell.TH     (normalB, normalB, promotedT, promotedT, reify)
+import Language.Haskell.TH     (sigD, sigD, varE, varE, varP, varP, varT, varT)
+import Language.Haskell.TH     (Dec, Info (TyConI), Name, Q)
+import Language.Haskell.TH     (Type (AppT, ConT, PromotedT, SigT))
+import Language.Haskell.TH.Lib (plainTV)
 
 -- | @genInduction ''Type "inductionT"@ defines the induction scheme for @Type@ named @inductionT@.
 genInduction :: Name -> String -> Q [Dec]
@@ -41,10 +41,9 @@ buildCase fname size dName p (nth, dCon) = do
   eparams <- forM paramTs $ \ty ->
     case getTyConName ty of
       Just nm | nm == dName -> Right <$> newName "t"
-      _ -> Left <$> newName "a"
+      _       -> Left <$> newName "a"
   xs <- replicateM (length paramTs) $ newName "x"
-  let freeVars = lefts eparams
-      subCases = [[t| Sing $(varT t) -> $(varT p) $(varT t) |] | t <- rights eparams ]
+  let subCases = [[t| Sing $(varT t) -> $(varT p) $(varT t) |] | t <- rights eparams ]
   params <- mapM (either varT varT) eparams
   let promCon = foldl appT (promotedT conName) (map return params)
       tbdy | null subCases = foldr toT ([t| $(varT p `appT` promCon) |]) subCases
@@ -58,28 +57,17 @@ buildCase fname size dName p (nth, dCon) = do
   cl <- clause (map varP cs ++ [conP sName $ map varP xs]) (normalB body) []
   return (cl, sig)
   where
-    extractName (NormalC n _) = n
-    extractName (RecC n _) = n
+    extractName (NormalC n _)  = n
+    extractName (RecC n _)     = n
     extractName (InfixC _ n _) = n
-    extractName _ = error "I don't know name!"
-    extractParams (NormalC _ sts) = map snd sts
-    extractParams (RecC _ vsts)   = map (\(_,_,c) -> c) vsts
+    extractName _              = error "I don't know name!"
+    extractParams (NormalC _ sts)          = map snd sts
+    extractParams (RecC _ vsts)            = map (\(_,_,c) -> c) vsts
     extractParams (InfixC (_, t) _ (_, s)) = [t,s]
-    extractParams _ = []
+    extractParams _                        = []
 
 toT :: TypeQ -> TypeQ -> TypeQ
 a `toT` b = arrowT `appT` a `appT` b
-
-getFreeVarT :: Type -> [Name]
-getFreeVarT (AppT a b) = getFreeVarT a ++ getFreeVarT b
-getFreeVarT (SigT a _) = getFreeVarT a
-getFreeVarT (ForallT tvs _ t) = getFreeVarT t \\ map tyVarName tvs
-getFreeVarT (VarT n)   = [n]
-getFreeVarT _          = []
-
-tyVarName :: TyVarBndr -> Name
-tyVarName (PlainTV n) = n
-tyVarName (KindedTV n _) = n
 
 getTyConName :: Type -> Maybe Name
 getTyConName (AppT a _)    = getTyConName a

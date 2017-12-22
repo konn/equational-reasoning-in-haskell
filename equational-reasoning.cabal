@@ -32,4 +32,6 @@ library
                      , th-desugar       >= 1.6
                      , th-extras
                      , void             >= 0.6    && < 0.8
-  build-depends:       singletons       >= 2.1    && < 2.4
+                     , singletons       >= 2.1    && < 2.4
+  if !impl(ghc >= 8.4)
+     build-depends:    semigroups
