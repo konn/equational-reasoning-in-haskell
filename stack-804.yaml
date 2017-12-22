@@ -23,7 +23,7 @@ package-indices:
   http: http://head.hackage.haskell.org/01-index.tar.gz
 - name: Hackage
   download-prefix: http://hackage.haskell.org/package/
-  http: http://hackage.haskell.org/
+  http: http://hackage.haskell.org/01-index.tar.gz
 
 allow-newer: true
 extra-deps:
