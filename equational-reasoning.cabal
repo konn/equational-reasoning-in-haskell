@@ -2,17 +2,17 @@
 --  documentation, see http://haskell.org/cabal/users-guide/
 
 name:                equational-reasoning
-version:             0.5.0.0
+version:             0.5.1.0
 synopsis:            Proof assistant for Haskell using DataKinds & PolyKinds
 description:         A simple convenient library to write equational / preorder proof as in Agda.
 license:             BSD3
 license-file:        LICENSE
 author:              Hiromi ISHII
 maintainer:          konn.jinro_at_gmail.com
-copyright:           (c) Hiromi ISHII 2013-2014
+copyright:           (c) Hiromi ISHII 2013-2018
 category:            Math
 build-type:          Simple
-tested-with:         GHC == 7.10.3, GHC == 8.0.1
+tested-with:         GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
 cabal-version:       >=1.8
 
 source-repository head
@@ -27,11 +27,13 @@ library
                      , Proof.Propositional.TH
   ghc-options:         -Wall
   build-depends:       base             >= 4      && < 5
-                     , containers       >= 0.5
-                     , template-haskell
-                     , th-desugar       >= 1.6
-                     , th-extras
+                     , containers       == 0.5.*
+                     , template-haskell >= 2.11   && <2.14
+                     , th-extras        == 0.0.*
                      , void             >= 0.6    && < 0.8
-                     , singletons       >= 2.1    && < 2.4
-  if !impl(ghc >= 8.4)
-     build-depends:    semigroups
+                     , singletons       >= 2.1    && < 2.5
+  if impl(ghc >= 8.4)
+     build-depends:    th-desugar       == 1.8.*
+  else
+     build-depends:    semigroups       == 0.18.*
+     build-depends:    th-desugar       >= 1.6 && < 1.8
