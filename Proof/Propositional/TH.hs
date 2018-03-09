@@ -1,5 +1,5 @@
-{-# LANGUAGE ExplicitNamespaces, MultiWayIf, PatternGuards, TemplateHaskell #-}
-{-# LANGUAGE TupleSections                                                  #-}
+{-# LANGUAGE CPP, ExplicitNamespaces, MultiWayIf, PatternGuards #-}
+{-# LANGUAGE TemplateHaskell, TupleSections                     #-}
 module Proof.Propositional.TH where
 import Proof.Propositional.Empty
 import Proof.Propositional.Inhabited
@@ -12,18 +12,18 @@ import qualified Data.Map                    as M
 import           Data.Maybe                  (fromJust)
 import           Data.Semigroup              (Semigroup (..))
 import           Data.Type.Equality          ((:~:) (..))
-import           Language.Haskell.TH         (DecsQ, Lit (CharL, IntegerL))
-import           Language.Haskell.TH         (Name, Q, TypeQ, isInstance)
-import           Language.Haskell.TH         (newName, ppr)
-import           Language.Haskell.TH.Desugar (DClause (..), DCon (..))
-import           Language.Haskell.TH.Desugar (DConFields (..), DCxt, DDec (..))
-import           Language.Haskell.TH.Desugar (DExp (..), DInfo (..))
-import           Language.Haskell.TH.Desugar (DLetDec (DFunD))
-import           Language.Haskell.TH.Desugar (DPat (DConPa, DVarPa), DPred (..))
-import           Language.Haskell.TH.Desugar (DTyVarBndr (..), DType (..))
-import           Language.Haskell.TH.Desugar (Overlap (Overlapping), desugar)
-import           Language.Haskell.TH.Desugar (dsReify, expandType, substTy)
-import           Language.Haskell.TH.Desugar (sweeten)
+import           Language.Haskell.TH         (DecsQ, Lit (CharL, IntegerL),
+                                              Name, Q, TypeQ, isInstance,
+                                              newName, ppr)
+import           Language.Haskell.TH.Desugar (DClause (..), DCon (..),
+                                              DConFields (..), DCxt, DDec (..),
+                                              DExp (..), DInfo (..),
+                                              DLetDec (DFunD),
+                                              DPat (DConPa, DVarPa), DPred (..),
+                                              DTyVarBndr (..), DType (..),
+                                              Overlap (Overlapping), desugar,
+                                              dsReify, expandType, substTy,
+                                              sweeten)
 
 
 -- | Macro to automatically derive @'Empty'@ instance for
@@ -110,11 +110,16 @@ buildProveClause  =
     (const $ const [])
 
 fieldsVars :: DConFields -> [DType]
-fieldsVars (DNormalC fs) = map snd fs
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
+fieldsVars (DNormalC fs)
+#else
+fieldsVars (DNormalC _ fs)
+#endif
+  = map snd fs
 fieldsVars (DRecC fs)    = map (\(_,_,c) -> c) fs
 
 resolveSubsts :: [DType] -> DInfo -> Q (DCxt, [DCon])
-resolveSubsts args info = do
+resolveSubsts args info =
   case info of
     (DTyConI (DDataD _ cxt _ tvbs dcons _) _) -> do
       let dic = M.fromList $ zip (map dtvbToName tvbs) args
@@ -135,7 +140,19 @@ substDCon dic (DCon forall'd cxt conName fields mPhantom) =
     <*> mapM (substTy dic) mPhantom
 
 substFields :: SubstDic -> DConFields -> Q DConFields
-substFields subst (DNormalC fs) = DNormalC <$> mapM (runKleisli $ second $ Kleisli $ substTy subst) fs
+substFields subst
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
+  (DNormalC fs)
+#else
+  (DNormalC fixi fs)
+#endif
+  =
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
+  DNormalC <$>
+#else
+  DNormalC fixi <$>
+#endif
+  mapM (runKleisli $ second $ Kleisli $ substTy subst) fs
 substFields subst (DRecC fs) =
   DRecC <$> forM fs (\(a,b,c) -> (a, b ,) <$> substTy subst c)
 
@@ -195,7 +212,7 @@ compareType' (DForallT tTvBs tCxt t) (DForallT sTvBs sCxt s)
       bd <- compareType' t s'
       return (pd <> bd)
   | otherwise = return NonEqual
-compareType' (DForallT _ _ _) _   = return NonEqual
+compareType' DForallT{} _   = return NonEqual
 compareType' (DAppT t1 t2) (DAppT s1 s2)
   = (<>) <$> compareType' t1 s1 <*> compareType' t2 s2
 compareType' (DConT t) (DConT s)
@@ -243,3 +260,7 @@ substPred dic prd@(DVarPr p)
   | Just (DConT t) <- M.lookup p dic = return $ DConPr t
   | otherwise = return prd
 substPred _ t = return t
+
+
+
+
