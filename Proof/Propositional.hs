@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds, DeriveDataTypeable, EmptyCase, ExplicitForAll     #-}
 {-# LANGUAGE ExplicitNamespaces, FlexibleInstances, GADTs, KindSignatures #-}
-{-# LANGUAGE LambdaCase, PolyKinds, StandaloneDeriving, TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators, RankNTypes                                    #-}
+{-# LANGUAGE LambdaCase, PolyKinds, RankNTypes, StandaloneDeriving        #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators                               #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Provides type synonyms for logical connectives.
 module Proof.Propositional
@@ -76,7 +76,7 @@ data IsTrue (b :: Bool) where
 
 withWitness :: IsTrue b -> (b ~ 'True => r) -> r
 withWitness Witness r = r
-{-# INLINE [1] withWitness #-}
+{-# NOINLINE withWitness #-}
 {-# RULES
 "withWitness/coercion" [~1] forall x.
   withWitness x = unsafeCoerce

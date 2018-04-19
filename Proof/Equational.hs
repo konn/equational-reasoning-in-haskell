@@ -157,7 +157,7 @@ coerce' _ a = unsafeCoerce a
 withRefl :: forall a b r. a :~: b -> (a ~ b => r) -> r
 withRefl _ r = case unsafeCoerce (Refl :: () :~: ()) :: a :~: b of
   Refl -> r
-{-# INLINE [1] withRefl #-}
+{-# NOINLINE withRefl #-}
 {-# RULES
 "withRefl/unsafeCoerce" [~1] forall x.
   withRefl x = unsafeCoerce
