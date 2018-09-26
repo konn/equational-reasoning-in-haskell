@@ -1,23 +1,7 @@
-resolver: ghc-8.4.1
-compiler: ghc-8.4.1
-skip-ghc-check: true
+resolver: lts-12.2
 
 flags: {}
 packages:
 - '.'
 
-# allow-newer: true
-extra-deps:
-- primitive-0.6.3.0
-- safe-0.3.16
-- singletons-2.4.1
-- syb-0.7
-- th-desugar-1.8
-- th-expand-syns-0.4.4.0
-- th-extras-0.0.0.4
-- th-lift-0.7.8
-- th-lift-instances-0.1.11
-- th-orphans-0.13.5
-- th-reify-many-0.1.8
-- vector-0.12.0.1
-- void-0.7.2
+extra-deps: []
