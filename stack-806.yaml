@@ -1,0 +1,26 @@
+resolver: ghc-8.6.1
+compiler: ghc-8.6.1
+
+flags: {}
+packages:
+- '.'
+
+extra-deps:
+- ghc-tcplugins-extra-0.3
+- primitive-0.6.4.0
+- reflection-2.1.4
+- safe-0.3.17
+- syb-0.7
+- th-abstraction-0.2.8.0
+- th-expand-syns-0.4.4.0
+- th-extras-0.0.0.4
+- th-lift-0.7.11
+- th-lift-instances-0.1.11
+- th-orphans-0.13.6
+- th-reify-many-0.1.8
+- vector-0.12.0.1
+- void-0.7.2
+- git: https://github.com/goldfirere/singletons.git
+  commit: 74176fa8e8392f21e116dd2b4b259aed2076d7c9
+- git: https://github.com/goldfirere/th-desugar.git
+  commit: 0f0a45f7b1f290a6005e6d9d849247f8c3d35429

@@ -25,7 +25,6 @@ import           Language.Haskell.TH.Desugar (DClause (..), DCon (..),
                                               dsReify, expandType, substTy,
                                               sweeten)
 
-
 -- | Macro to automatically derive @'Empty'@ instance for
 --   concrete (variable-free) types which may contain products.
 refute :: TypeQ -> DecsQ
@@ -121,7 +120,11 @@ fieldsVars (DRecC fs)    = map (\(_,_,c) -> c) fs
 resolveSubsts :: [DType] -> DInfo -> Q (DCxt, [DCon])
 resolveSubsts args info =
   case info of
-    (DTyConI (DDataD _ cxt _ tvbs dcons _) _) -> do
+    (DTyConI (DDataD _ cxt _ tvbs
+#if MIN_VERSION_th_desugar(1,9,0)
+              _
+#endif
+             dcons _) _) -> do
       let dic = M.fromList $ zip (map dtvbToName tvbs) args
       (cxt , ) <$> mapM (substDCon dic) dcons
     -- (DTyConI (DOpenTypeFamilyD n) _) ->  return []
@@ -137,7 +140,11 @@ substDCon :: SubstDic -> DCon -> Q DCon
 substDCon dic (DCon forall'd cxt conName fields mPhantom) =
   DCon forall'd cxt conName
     <$> substFields dic fields
+#if MIN_VERSION_th_desugar(1,9,0)
+    <*> substTy dic mPhantom
+#else
     <*> mapM (substTy dic) mPhantom
+#endif
 
 substFields :: SubstDic -> DConFields -> Q DConFields
 substFields subst
@@ -169,7 +176,10 @@ splitType (DConT n) = Just ([], n, [])
 splitType DArrowT = Just ([], ''(->), [])
 splitType (DLitT _) = Nothing
 splitType DWildCardT = Nothing
+#if !MIN_VERSION_th_desugar(1,9,0)
 splitType DStarT = Nothing
+#endif
+
 
 data EqlJudge = NonEqual | Undecidable | Equal
               deriving (Read, Show, Eq, Ord)
@@ -225,7 +235,9 @@ compareType' (DLitT t) (DLitT s)
   | t == s    = return Equal
   | otherwise = return NonEqual
 compareType' (DLitT _) _ = return NonEqual
+#if !MIN_VERSION_th_desugar(1,9,0)
 compareType' DStarT DStarT = return NonEqual
+#endif
 compareType' _ _ = return NonEqual
 
 compareCxt :: DCxt -> DCxt -> Q EqlJudge
@@ -251,6 +263,10 @@ comparePred (DConPr l) (DConPr r)
   | l == r = return Equal
   | otherwise = return NonEqual
 comparePred (DConPr _) _ = return NonEqual
+#if MIN_VERSION_th_desugar(1,9,0)
+comparePred (DForallPr _ _ _) (DForallPr _ _ _) = return Undecidable
+comparePred (DForallPr{}) _ = return NonEqual
+#endif
 
 substPred :: SubstDic -> DPred -> Q DPred
 substPred dic (DAppPr p1 p2) = DAppPr <$> substPred dic p1 <*> (expandType =<< substTy dic p2)
