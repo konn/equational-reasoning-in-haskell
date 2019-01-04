@@ -12,7 +12,7 @@ maintainer:          konn.jinro_at_gmail.com
 copyright:           (c) Hiromi ISHII 2013-2018
 category:            Math
 build-type:          Simple
-tested-with:         GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
+tested-with:         GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1, GHC == 8.6.3
 cabal-version:       >=1.8
 
 source-repository head
