@@ -24,8 +24,7 @@ library
   exposed-modules:     Proof.Equational, Proof.Propositional
                      , Proof.Propositional.Inhabited
                      , Proof.Propositional.Empty
-  other-modules:       Proof.Internal.THCompat
-                     , Proof.Propositional.TH
+  other-modules:       Proof.Propositional.TH
   ghc-options:         -Wall
   build-depends:       base             >= 4      && < 5
                      , containers       >= 0.5    && < 0.7
