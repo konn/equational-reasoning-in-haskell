@@ -2,9 +2,10 @@
 --  documentation, see http://haskell.org/cabal/users-guide/
 
 name:                equational-reasoning
-version:             0.5.1.1
+version:             0.6.0.0
 synopsis:            Proof assistant for Haskell using DataKinds & PolyKinds
 description:         A simple convenient library to write equational / preorder proof as in Agda.
+                     Since 0.6.0.0, this no longer depends on @singletons@ package, and the @Proof.Induction@ module goes to @equational-reasoning-induction@ package.
 license:             BSD3
 license-file:        LICENSE
 author:              Hiromi ISHII
@@ -20,7 +21,7 @@ source-repository head
     location: git://github.com/konn/equational-reasoning-in-haskell.git
 
 library
-  exposed-modules:     Proof.Equational, Proof.Propositional, Proof.Induction
+  exposed-modules:     Proof.Equational, Proof.Propositional
                      , Proof.Propositional.Inhabited
                      , Proof.Propositional.Empty
   other-modules:       Proof.Internal.THCompat
@@ -31,7 +32,6 @@ library
                      , template-haskell >= 2.11   && < 2.16
                      , th-extras        == 0.0.*
                      , void             >= 0.6    && < 0.8
-                     , singletons       >= 2.1    && < 2.6
   if impl(ghc >= 8.4)
      build-depends:    th-desugar       >= 1.6 && < 1.11
   else

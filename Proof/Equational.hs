@@ -18,10 +18,9 @@ module Proof.Equational ( (:~:)(..), (:=:)
                           -- * Coercion
                         , coerce, coerce', withRefl
                           -- * Re-exported modules
-                        , module Data.Singletons, module Data.Proxy
+                        , module Data.Proxy
                         ) where
 import Data.Proxy
-import Data.Singletons
 import Data.Type.Equality hiding (apply)
 import Unsafe.Coerce
 
@@ -39,17 +38,17 @@ data Leibniz a b = Leibniz { apply :: forall f. f a -> f b }
 leibnizToRefl :: Leibniz a b -> a :=: b
 leibnizToRefl eq = apply eq Refl
 
-fromLeibniz :: (Preorder eq, SingI a) => Leibniz a b -> eq a b
-fromLeibniz eq = apply eq (reflexivity sing)
+fromLeibniz :: (Preorder eq) => Leibniz a b -> eq a b
+fromLeibniz eq = apply eq (reflexivity Proxy)
 
-fromRefl :: (Preorder eq, SingI b) => a :=: b -> eq a b
+fromRefl :: (Preorder eq) => a :=: b -> eq a b
 fromRefl Refl = reflexivity'
 
 reflToLeibniz :: a :=: b -> Leibniz a b
 reflToLeibniz Refl = Leibniz id
 
 class Preorder (eq :: k -> k -> *) where
-  reflexivity  :: Sing a -> eq a a
+  reflexivity  :: proxy a -> eq a a
   transitivity :: eq a b  -> eq b c -> eq a c
 
 class Preorder eq => Equality (eq :: k -> k -> *) where
@@ -85,12 +84,12 @@ instance Equality Leibniz where
 newtype Flip f a b = Flip { unFlip :: f b a }
 
 data Reason eq x y where
-  Because :: Sing y -> eq x y -> Reason eq x y
+  Because :: proxy y -> eq x y -> Reason eq x y
 
-reflexivity' :: (SingI x, Preorder r) => r x x
-reflexivity' = reflexivity sing
+reflexivity' :: (Preorder r) => r x x
+reflexivity' = reflexivity Proxy
 
-by, because :: Sing y -> eq x y -> Reason eq x y
+by, because :: proxy y -> eq x y -> Reason eq x y
 because = Because
 by      = Because
 
@@ -112,14 +111,14 @@ eq =>= (_ `Because` eq') = transitivity eq' eq
 (===) = (=<=)
 {-# SPECIALISE INLINE[1] (===) :: x :~: y -> Reason (:~:) y z -> x :~: z #-}
 
-(=~=) :: r x y -> Sing y -> r x y
+(=~=) :: r x y -> proxy y -> r x y
 eq =~= _ = eq
 
-start :: Preorder eq => Sing a -> eq a a
+start :: Preorder eq => proxy a -> eq a a
 start = reflexivity
 
-byDefinition :: (SingI a, Preorder eq) => eq a a
-byDefinition = reflexivity sing
+byDefinition :: (Preorder eq) => eq a a
+byDefinition = reflexivity Proxy
 
 admitted :: Reason eq x y
 admitted = undefined
@@ -128,7 +127,7 @@ admitted = undefined
 cong :: forall f a b. Proxy f -> a :=: b -> f a :=: f b
 cong Proxy Refl = Refl
 
-cong' :: (Sing m -> Sing (f m)) -> a :=: b -> f a :=: f b
+cong' :: (pxy m -> pxy (f m)) -> a :=: b -> f a :=: f b
 cong' _ Refl =  Refl
 
 -- | Type coercion. 'coerce' is using @unsafeCoerce a@.
