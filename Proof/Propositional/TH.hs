@@ -109,10 +109,10 @@ buildProveClause  =
     (const $ const [])
 
 fieldsVars :: DConFields -> [DType]
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
-fieldsVars (DNormalC fs)
-#else
+#if MIN_VERSION_th_desugar(1,8,0)
 fieldsVars (DNormalC _ fs)
+#else
+fieldsVars (DNormalC fs)
 #endif
   = map snd fs
 fieldsVars (DRecC fs)    = map (\(_,_,c) -> c) fs
@@ -148,16 +148,16 @@ substDCon dic (DCon forall'd cxt conName fields mPhantom) =
 
 substFields :: SubstDic -> DConFields -> Q DConFields
 substFields subst
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
-  (DNormalC fs)
-#else
+#if MIN_VERSION_th_desugar(1,8,0)
   (DNormalC fixi fs)
+#else
+  (DNormalC fs)
 #endif
   =
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 804
-  DNormalC <$>
-#else
+#if MIN_VERSION_th_desugar(1,8,0)
   DNormalC fixi <$>
+#else
+  DNormalC <$>
 #endif
   mapM (runKleisli $ second $ Kleisli $ substTy subst) fs
 substFields subst (DRecC fs) =
