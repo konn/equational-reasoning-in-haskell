@@ -18,11 +18,18 @@ import           Language.Haskell.TH.Desugar (DClause (..), DCon (..),
                                               DConFields (..), DCxt, DDec (..),
                                               DExp (..), DInfo (..),
                                               DLetDec (DFunD),
+#if MIN_VERSION_th_desugar(1,10,0)
                                               DPat (DConP, DVarP), DPred,
+#else
+                                              DPat (DConPa, DVarPa), DPred(..),
+#endif
                                               DTyVarBndr (..), DType (..),
                                               Overlap (Overlapping), desugar,
                                               dsReify, expandType, substTy,
                                               sweeten)
+#if !MIN_VERSION_base(4,13,0)
+import           Data.Semigroup              (Semigroup (..))
+#endif
 
 -- | Macro to automatically derive @'Empty'@ instance for
 --   concrete (variable-free) types which may contain products.
@@ -31,7 +38,11 @@ refute tps = do
   tp <- expandType =<< desugar =<< tps
   let Just (_, tyName, args) = splitType tp
       mkInst dxt cls = return $ sweeten
-                       [DInstanceD (Just Overlapping) Nothing dxt
+                       [DInstanceD (Just Overlapping)
+#if MIN_VERSION_th_desugar(1,10,0)
+                        Nothing
+#endif
+                        dxt
                         (DAppT (DConT ''Empty) (foldl DAppT (DConT tyName) args))
                         [DLetDec $ DFunD 'eliminate cls]
                          ]
@@ -57,7 +68,11 @@ prove tps = do
   tp <- expandType =<< desugar =<< tps
   let Just (_, tyName, args) = splitType tp
       mkInst dxt cls = return $ sweeten
-                       [DInstanceD (Just Overlapping) Nothing dxt
+                       [DInstanceD (Just Overlapping)
+#if MIN_VERSION_th_desugar(1,10,0)
+                        Nothing
+#endif
+                        dxt
                         (DAppT (DConT ''Inhabited) (foldl DAppT (DConT tyName) args))
                         [DLetDec $ DFunD 'trivial cls]
                          ]
@@ -97,7 +112,11 @@ buildRefuteClause =
   buildClause
     ''Empty (const $ newName "_x")
     (const $ (DVarE 'eliminate `DAppE`) . DVarE) (const asum)
+#if MIN_VERSION_th_desugar(1,10,0)
     (\cName ps -> [DConP cName $ map DVarP ps])
+#else
+    (\cName ps -> [DConPa cName $ map DVarPa ps])
+#endif
 
 buildProveClause :: DCon -> Q (Maybe DClause)
 buildProveClause  =
@@ -177,8 +196,9 @@ splitType (DLitT _) = Nothing
 splitType DWildCardT = Nothing
 #if !MIN_VERSION_th_desugar(1,9,0)
 splitType DStarT = Nothing
-#endif
+#elif MIN_VERSION_th_desugar(1,10,0)
 splitType (DAppKindT _ _) = Nothing
+#endif
 
 
 data EqlJudge = NonEqual | Undecidable | Equal
@@ -244,6 +264,7 @@ compareCxt :: DCxt -> DCxt -> Q EqlJudge
 compareCxt l r = mconcat <$> zipWithM comparePred l r
 
 comparePred :: DPred -> DPred -> Q EqlJudge
+#if MIN_VERSION_th_desugar(1,10,0)
 comparePred DWildCardT _ = return Undecidable
 comparePred _ DWildCardT = return Undecidable
 comparePred (DVarT l) (DVarT r)
@@ -263,13 +284,37 @@ comparePred (DConT l) (DConT r)
   | l == r = return Equal
   | otherwise = return NonEqual
 comparePred (DConT _) _ = return NonEqual
-#if MIN_VERSION_th_desugar(1,9,0)
 comparePred (DForallT _ _ _) (DForallT _ _ _) = return Undecidable
 comparePred (DForallT{}) _ = return NonEqual
-#endif
 comparePred _ _ = fail "Kind error: Expecting type-level predicate"
+#else
+comparePred DWildCardPr _ = return Undecidable
+comparePred _ DWildCardPr = return Undecidable
+comparePred (DVarPr l) (DVarPr r)
+  | l == r = return Equal
+comparePred (DVarPr _) _ = return Undecidable
+comparePred _ (DVarPr _) = return Undecidable
+comparePred (DSigPr l t) (DSigPr r s) =
+  (<>) <$> compareType' t s <*> comparePred l r
+comparePred (DSigPr l _) r = comparePred l r
+comparePred l (DSigPr r _) = comparePred l r
+comparePred (DAppPr l1 l2) (DAppPr r1 r2) = do
+  l2' <- expandType l2
+  r2' <- expandType r2
+  (<>) <$> comparePred l1 r1 <*> compareType' l2' r2'
+comparePred (DAppPr _ _) _ = return NonEqual
+comparePred (DConPr l) (DConPr r)
+  | l == r = return Equal
+  | otherwise = return NonEqual
+comparePred (DConPr _) _ = return NonEqual
+#if MIN_VERSION_th_desugar(1,9,0)
+comparePred (DForallPr _ _ _) (DForallPr _ _ _) = return Undecidable
+comparePred (DForallPr{}) _ = return NonEqual
+#endif
+#endif
 
 substPred :: SubstDic -> DPred -> Q DPred
+#if MIN_VERSION_th_desugar(1,10,0)
 substPred dic (DAppT p1 p2) = DAppT <$> substPred dic p1 <*> (expandType =<< substTy dic p2)
 substPred dic (DSigT p knd) = DSigT <$> substPred dic p  <*> (expandType =<< substTy dic knd)
 substPred dic prd@(DVarT p)
@@ -277,6 +322,15 @@ substPred dic prd@(DVarT p)
   | Just (DConT t) <- M.lookup p dic = return $ DConT t
   | otherwise = return prd
 substPred _ t = return t
+#else
+substPred dic (DAppPr p1 p2) = DAppPr <$> substPred dic p1 <*> (expandType =<< substTy dic p2)
+substPred dic (DSigPr p knd) = DSigPr <$> substPred dic p  <*> (expandType =<< substTy dic knd)
+substPred dic prd@(DVarPr p)
+  | Just (DVarT t) <- M.lookup p dic = return $ DVarPr t
+  | Just (DConT t) <- M.lookup p dic = return $ DConPr t
+  | otherwise = return prd
+substPred _ t = return t
+#endif
 
 
 
