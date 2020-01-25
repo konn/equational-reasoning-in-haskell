@@ -5,6 +5,8 @@ sudo: false
 cache:
   directories:
     - $HOME/.cabsnap
+    - $HOME/.cabal
+    - $HOME/.ghc
     - $HOME/.stack
     - $TRAVIS_BUILD_DIR/.stack-work
 
