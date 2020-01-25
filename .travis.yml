@@ -18,6 +18,8 @@ matrix:
       compiler: ": #GHC 8.4.1"
     - env: STACK_YAML=stack-806.yaml
       compiler: ": #GHC 8.6.3"
+    - env: STACK_YAML=stack-808.yaml
+      compiler: ": #GHC 8.8.2"
 
 before_install:
  # install Stack
