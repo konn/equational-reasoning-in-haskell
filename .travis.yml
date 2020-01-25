@@ -6,6 +6,7 @@ cache:
   directories:
     - $HOME/.cabsnap
     - $HOME/.stack
+    - $TRAVIS_BUILD_DIR/.stack-work
 
 matrix:
   include:
