@@ -186,7 +186,13 @@ dtvbToName (DPlainTV n)    = n
 dtvbToName (DKindedTV n _) = n
 
 splitType :: DType -> Maybe ([Name], Name, [DType])
-splitType (DForallT vs _ t) = (\(a,b,c) -> (map dtvbToName vs ++ a, b, c)) <$> splitType t
+#if MIN_VERSION_th_desugar(1,11,0)
+splitType (DConstrainedT _ t) = splitType t
+splitType (DForallT _ vs t) 
+#else
+splitType (DForallT vs _ t) 
+#endif
+  = (\(a,b,c) -> (map dtvbToName vs ++ a, b, c)) <$> splitType t
 splitType (DAppT t1 t2) = (\(a,b,c) -> (a, b, c ++ [t2])) <$> splitType t1
 splitType (DSigT t _) = splitType t
 splitType (DVarT _) = Nothing
@@ -234,6 +240,20 @@ compareType' (DVarT _) _ = return Undecidable
 compareType' _ (DVarT _) = return Undecidable
 compareType' DWildCardT _ = return Undecidable
 compareType' _ DWildCardT = return Undecidable
+#if MIN_VERSION_th_desugar(1,11,0)
+compareType' (DConstrainedT tCxt t) (DConstrainedT sCxt s) = do
+  pd <- compareCxt tCxt sCxt
+  bd <- compareType' t s
+  return (pd <> bd)
+compareType' DConstrainedT{} _ = return NonEqual
+compareType' (DForallT _ tTvBs t) (DForallT _ sTvBs s)
+  | length tTvBs == length sTvBs = do
+      let dic = M.fromList $ zip (map dtvbToName sTvBs) (map (DVarT . dtvbToName) tTvBs)
+      s' <- substTy dic s
+      bd <- compareType' t s'
+      return bd
+  | otherwise = return NonEqual
+#else
 compareType' (DForallT tTvBs tCxt t) (DForallT sTvBs sCxt s)
   | length tTvBs == length sTvBs = do
       let dic = M.fromList $ zip (map dtvbToName sTvBs) (map (DVarT . dtvbToName) tTvBs)
@@ -242,6 +262,7 @@ compareType' (DForallT tTvBs tCxt t) (DForallT sTvBs sCxt s)
       bd <- compareType' t s'
       return (pd <> bd)
   | otherwise = return NonEqual
+#endif
 compareType' DForallT{} _   = return NonEqual
 compareType' (DAppT t1 t2) (DAppT s1 s2)
   = (<>) <$> compareType' t1 s1 <*> compareType' t2 s2

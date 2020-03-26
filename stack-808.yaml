@@ -4,4 +4,5 @@ flags: {}
 packages:
 - '.'
 
-extra-deps: []
+extra-deps:
+- th-desugar-1.11
