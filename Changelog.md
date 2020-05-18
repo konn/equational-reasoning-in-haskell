@@ -1,6 +1,9 @@
 Changelog
 ==========
 
+# 0.6.0.3
+- Support for GHC >= 8.10
+
 # 0.6.0.2
 - Adds support for th-desugar-1.11
 
