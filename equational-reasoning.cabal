@@ -14,7 +14,7 @@ copyright:           (c) Hiromi ISHII 2013-2020
 category:            Math
 build-type:          Simple
 tested-with:         GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1, GHC == 8.6.5, GHC == 8.8.2
-cabal-version:       >=1.8
+cabal-version:       >=1.10
 
 source-repository head
     type: git
