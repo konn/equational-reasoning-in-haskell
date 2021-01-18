@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, ExplicitNamespaces, MultiWayIf, PatternGuards #-}
-{-# LANGUAGE TemplateHaskell, TupleSections                     #-}
+{-# LANGUAGE TemplateHaskell, TupleSections, ViewPatterns                     #-}
 module Proof.Propositional.TH where
 import Proof.Propositional.Empty
 import Proof.Propositional.Inhabited
@@ -23,6 +23,10 @@ import           Language.Haskell.TH.Desugar (DClause (..), DCon (..),
 #else
                                               DPat (DConPa, DVarPa), DPred(..),
 #endif
+#if MIN_VERSION_th_desugar(1,12,0)
+  DForallTelescope(..),
+#endif
+
                                               DTyVarBndr (..), DType (..),
                                               Overlap (Overlapping), desugar,
                                               dsReify, expandType, substTy,
@@ -30,6 +34,10 @@ import           Language.Haskell.TH.Desugar (DClause (..), DCon (..),
 #if !MIN_VERSION_base(4,13,0)
 import           Data.Semigroup              (Semigroup (..))
 #endif
+#if MIN_VERSION_th_desugar(1,12,0)
+import Data.Functor (void)
+#endif
+
 
 -- | Macro to automatically derive @'Empty'@ instance for
 --   concrete (variable-free) types which may contain products.
@@ -181,14 +189,14 @@ substFields subst
 substFields subst (DRecC fs) =
   DRecC <$> forM fs (\(a,b,c) -> (a, b ,) <$> substTy subst c)
 
-dtvbToName :: DTyVarBndr -> Name
-dtvbToName (DPlainTV n)    = n
-dtvbToName (DKindedTV n _) = n
-
 splitType :: DType -> Maybe ([Name], Name, [DType])
 #if MIN_VERSION_th_desugar(1,11,0)
 splitType (DConstrainedT _ t) = splitType t
+#if MIN_VERSION_th_desugar(1,12,0)
+splitType (DForallT (unTelescope -> vs) t) 
+#else
 splitType (DForallT _ vs t) 
+#endif
 #else
 splitType (DForallT vs _ t) 
 #endif
@@ -246,7 +254,11 @@ compareType' (DConstrainedT tCxt t) (DConstrainedT sCxt s) = do
   bd <- compareType' t s
   return (pd <> bd)
 compareType' DConstrainedT{} _ = return NonEqual
+#if MIN_VERSION_th_desugar(1,12,0)
+compareType' (DForallT (unTelescope -> tTvBs) t) (DForallT (unTelescope -> sTvBs) s)
+#else
 compareType' (DForallT _ tTvBs t) (DForallT _ sTvBs s)
+#endif
   | length tTvBs == length sTvBs = do
       let dic = M.fromList $ zip (map dtvbToName sTvBs) (map (DVarT . dtvbToName) tTvBs)
       s' <- substTy dic s
@@ -305,7 +317,11 @@ comparePred (DConT l) (DConT r)
   | l == r = return Equal
   | otherwise = return NonEqual
 comparePred (DConT _) _ = return NonEqual
+#if MIN_VERSION_th_desugar(1,12,0)
+comparePred (DForallT _ _) (DForallT _ _) = return Undecidable
+#else
 comparePred (DForallT _ _ _) (DForallT _ _ _) = return Undecidable
+#endif
 comparePred (DForallT{}) _ = return NonEqual
 comparePred _ _ = fail "Kind error: Expecting type-level predicate"
 #else
@@ -353,6 +369,19 @@ substPred dic prd@(DVarPr p)
 substPred _ t = return t
 #endif
 
+{- FOURMOLU_DISABLE -}
+#if MIN_VERSION_th_desugar(1,12,0)
+dtvbToName :: DTyVarBndr flag -> Name
+dtvbToName (DPlainTV n _)    = n
+dtvbToName (DKindedTV n _ _) = n
+#else
+dtvbToName :: DTyVarBndr -> Name
+dtvbToName (DPlainTV n)    = n
+dtvbToName (DKindedTV n _) = n
+#endif
 
-
-
+#if MIN_VERSION_th_desugar(1,12,0)
+unTelescope :: DForallTelescope -> [DTyVarBndr ()]
+unTelescope (DForallVis vis) = map void vis
+unTelescope (DForallInvis vis) = map void vis
+#endif
