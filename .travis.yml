@@ -22,6 +22,8 @@ matrix:
       compiler: ": #GHC 8.6.3"
     - env: STACK_YAML=stack-808.yaml
       compiler: ": #GHC 8.8.2"
+    - env: STACK_YAML=stack-810.yaml
+      compiler: ": #GHC 8.10.3"
 
 before_install:
  # install Stack
@@ -33,13 +35,13 @@ before_install:
  - stack setup
 
 install:
- - stack --version
- - stack build --only-dependencies
+- stack --version
+- stack build --only-dependencies
 
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
- -  stack --no-terminal --skip-ghc-check test
+-  stack --no-terminal --skip-ghc-check test
 
 # Check that the resulting source distribution can be built & installed.
 # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
