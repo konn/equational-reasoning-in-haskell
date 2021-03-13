@@ -3,10 +3,17 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: th-desugar-1.12@sha256:019a2b121ed5de5f8a6af40ee7754511708566fe86def9533e3a54ec074be20e,3764
+    pantry-tree:
+      size: 1675
+      sha256: 9a6788ef0f02fb8dc76c7673f201dc3452f73df0fba7ff2197a49e7c5c5df879
+  original:
+    hackage: th-desugar-1.12
 snapshots:
 - completed:
-    size: 562473
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/17.yaml
-    sha256: 217ab7f1d59382a906fa39845ccf245759df4564846bcc4cfc859424a8f2d9e0
-  original: nightly-2021-01-17
+    size: 573076
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/3/12.yaml
+    sha256: 088cdb5d46f34f15249a95c69fcb52b966a56d4e70f4882b7063e847254e5cb8
+  original: nightly-2021-03-12

@@ -1,5 +1,8 @@
-resolver: nightly-2021-01-17
+resolver: nightly-2021-03-12
 
 flags: {}
 packages:
 - '.'
+
+extra-deps:
+- th-desugar-1.12
