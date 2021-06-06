@@ -1,28 +1,10 @@
-resolver: nightly-2021-01-17
-compiler: ghc-9.0.0.20201227
+resolver: nightly-2021-06-01
+compiler: ghc-9.0.1
 compiler-check: match-exact
-setup-info:
- ghc:
-  linux64:
-   9.0.0.20201227:
-    url: https://downloads.haskell.org/ghc/9.0.1-rc1/ghc-9.0.0.20201227-x86_64-deb9-linux.tar.xz
-    sha256: 53f1d9b1cd7cbac4f4e683b5bcf2d08dd45852bd55218c7c5e965b5a78704f15
-
-  macosx:
-   9.0.0.20201227:
-    url: https://downloads.haskell.org/ghc/9.0.1-rc1/ghc-9.0.0.20201227-x86_64-apple-darwin.tar.xz
-    sha256: e6e5bf34c002d52d7108b9d4c8621ae3d21059509f8868bb81b0ba4fda6320da
-
-allow-newer: true
 
 flags: {}
 packages:
 - .
 
 extra-deps:
-- github: dreixel/syb
-  commit: 61db19714933ce532f5579a9ce34d52a9efe2c76
-- github: mgsloan/th-expand-syns
-  commit: 6a64927ebd6b85cc3c67c00c88c3c7c019d31573
-- github: goldfirere/th-desugar
-  commit: e22709ebfc43c12fb690622eb0da09d2b3c4ba73
+- th-desugar-1.12
