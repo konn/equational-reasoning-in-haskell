@@ -16,7 +16,7 @@ jobs:
         experimental: [false]
         include:
         - ghc: ["9.2.1"]
-          experimental: [true]
+          experimental: true
     runs-on: ubuntu-latest
     env:
       STACK_YAML: "stack-${{ matrix.ghc }}.yaml"
