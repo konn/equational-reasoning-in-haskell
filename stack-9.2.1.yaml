@@ -1,5 +1,8 @@
 resolver: nightly-2021-10-29
 compiler: ghc-9.2.1
+skip-ghc-check: false
+install-ghc: false
+system-ghc: true
 compiler-check: match-exact
 
 flags: {}
