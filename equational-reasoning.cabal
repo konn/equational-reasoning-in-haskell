@@ -19,7 +19,7 @@ tested-with:          GHC == 8.0.2,
                       GHC == 8.6.3,
                       GHC == 8.8.2,
                       GHC == 8.10.3,
-                      GHC == 9.0.0.20201227
+                      GHC == 9.0.1
 cabal-version:       >=1.10
 source-repository head
     type: git
@@ -33,10 +33,10 @@ library
   ghc-options:         -Wall
   build-depends:       base             >= 4      && < 5
                      , containers       >= 0.5    && < 0.7
-                     , template-haskell >= 2.11   && < 2.18
+                     , template-haskell >= 2.11   && < 2.19
                      , void             >= 0.6    && < 0.8
   if impl(ghc >= 8.4)
-     build-depends:    th-desugar       >= 1.8 && < 1.13
+     build-depends:    th-desugar       >= 1.8 && < 1.14
   else
      build-depends:    semigroups       == 0.18.*
      build-depends:    th-desugar       >= 1.6 && < 1.8
