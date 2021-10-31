@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ["8.0.2", "8.2.1", "8.4.1", "8.6.3", "8.8.2", "8.10.3", "9.0.1"]
+        experimental: [false]
+        include:
+        - ghc: ["9.2.1"]
+          experimental: [true]
+    runs-on: ubuntu-latest
+    env:
+      STACK_YAML: "stack-${{ matrix.ghc }}.yaml"
+    continue-on-error: ${{ matrix.experimental }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: haskell/actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
+        stack-version: '2.7.3'
+
+    - name: Cache Global Stack
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-global-stack
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Cache Local Stack
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-local-stack
+      with:
+        path: "**/.stack-work"
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Install dependencies
+      run: |
+        stack update
+        stack build --only-dependencies --tests --no-run-tests
+    - name: Build
+      run: stack build
