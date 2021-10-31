@@ -120,7 +120,9 @@ buildRefuteClause =
   buildClause
     ''Empty (const $ newName "_x")
     (const $ (DVarE 'eliminate `DAppE`) . DVarE) (const asum)
-#if MIN_VERSION_th_desugar(1,10,0)
+#if MIN_VERSION_th_desugar(1,13,0)
+    (\cName ps -> [DConP cName [] $ map DVarP ps])
+#elif MIN_VERSION_th_desugar(1,10,0)
     (\cName ps -> [DConP cName $ map DVarP ps])
 #else
     (\cName ps -> [DConPa cName $ map DVarPa ps])
