@@ -57,6 +57,6 @@ jobs:
     - name: Install dependencies
       run: |
         stack update
-        stack build --only-dependencies --tests --no-run-tests
+        stack build --only-dependencies --test --no-run-tests
     - name: Build
       run: stack build
