@@ -31,7 +31,7 @@ jobs:
         stack-version: '2.7.3'
 
     - name: Cache Global Stack
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       env:
         cache-name: cache-global-stack
       with:
@@ -44,7 +44,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: Cache Local Stack
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       env:
         cache-name: cache-local-stack
       with:
