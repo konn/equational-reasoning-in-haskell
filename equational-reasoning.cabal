@@ -13,9 +13,7 @@ copyright:     (c) Hiromi ISHII 2013-2020
 category:      Math
 build-type:    Simple
 tested-with:
-  GHC ==8.0.2
-   || ==8.2.1
-   || ==8.4.1
+  GHC ==8.4.1
    || ==8.6.3
    || ==8.8.2
    || ==8.10.3
