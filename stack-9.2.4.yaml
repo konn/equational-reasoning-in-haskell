@@ -1,9 +1,0 @@
-resolver: nightly-2022-08-19
-compiler-check: match-exact
-
-flags: {}
-packages:
-- .
-
-extra-deps:
-- th-desugar-1.14

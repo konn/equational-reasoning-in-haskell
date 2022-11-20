@@ -1,0 +1,6 @@
+resolver: lts-20.1
+
+flags: {}
+packages:
+- .
+

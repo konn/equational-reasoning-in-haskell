@@ -1,0 +1,5 @@
+resolver: nightly-2022-11-20
+
+flags: {}
+packages:
+- .
