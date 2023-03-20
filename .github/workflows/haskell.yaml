@@ -21,7 +21,7 @@ jobs:
       id: enumerate
       run: |
         find "${{env.config-dir}}"/ -type f -name 'ghc-*.config' \
-          | sort -h | jq -ncR '[inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.)]' | tee configs.json
+          | sort -h | jq -ncR '[{ghc: inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.)}, plan: .}]' | tee configs.json
         echo "configs=$(cat configs.json)" >> "${GITHUB_OUTPUT}"
   build:
     name: Build
@@ -29,10 +29,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ${{fromJSON(needs.enumerate.outputs.configs)}}
+        include: ${{fromJSON(needs.enumerate.outputs.configs)}}
     runs-on: ubuntu-latest
     env:
-      CABAL: cabal --project-file=ci-configs/ghc-${{matrix.ghc}}.config
+      CABAL: cabal --project-file=${{matrix.plan}}.config
     continue-on-error: false
 
     steps:
@@ -48,7 +48,7 @@ jobs:
         cache-name: cache-cabal-store
       with:
         path: ~/.cabal/store
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', 'cabal-${{matrix.ghc}}.project') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -59,9 +59,9 @@ jobs:
         cache-name: cache-dist-newstyle
       with:
         path: "dist-newstyle"
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', 'cabal-${{matrix.ghc}}.project') }}-${{ hashFiles('**/*.hs') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}-${{ hashFiles('**/*.hs') }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', 'cabal-${{matrix.ghc}}.project') }}-
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-
 
