@@ -21,7 +21,7 @@ jobs:
       id: enumerate
       run: |
         find "${{env.config-dir}}"/ -type f -name 'ghc-*.config' \
-          | jq -ncR '[inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.)]'
+          | jq -ncR '[inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.)]' | tee configs.json
         echo "configs=$(cat configs.json)" >> "${GITHUB_OUTPUT}"
   build:
     needs: [enumerate]
