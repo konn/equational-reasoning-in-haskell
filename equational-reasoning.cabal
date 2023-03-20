@@ -13,13 +13,13 @@ copyright:     (c) Hiromi ISHII 2013-2020
 category:      Math
 build-type:    Simple
 tested-with:
-  GHC ==8.4.1
-   || ==8.6.3
-   || ==8.8.2
-   || ==8.10.3
-   || ==9.0.1
-   || ==9.2.5
-   || ==9.4.3
+  GHC ==8.4.4
+   || ==8.6.5
+   || ==8.8.4
+   || ==8.10.7
+   || ==9.0.2
+   || ==9.2.7
+   || ==9.4.4
 
 cabal-version: >=1.10
 
@@ -39,11 +39,11 @@ library
   build-depends:
       base              >=4    && <5
     , containers        >=0.5  && <0.7
-    , template-haskell  >=2.11 && <2.20
+    , template-haskell  >=2.11 && <2.21
     , void              >=0.6  && <0.8
 
   if impl(ghc >=8.4)
-    build-depends: th-desugar >=1.8 && <1.15
+    build-depends: th-desugar >=1.8 && <1.16
 
   else
     build-depends: semigroups ==0.18.*

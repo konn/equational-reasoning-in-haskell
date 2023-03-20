@@ -1,7 +1,0 @@
-resolver: nightly-2021-10-29
-compiler: ghc-9.0.1
-compiler-check: match-exact
-
-flags: {}
-packages:
-- .
