@@ -33,7 +33,7 @@ jobs:
         include: ${{fromJSON(needs.enumerate.outputs.configs)}}
     runs-on: ubuntu-latest
     env:
-      CABAL: cabal --project-file=${{matrix.plan}}.config
+      CABAL: cabal --project-file=${{matrix.plan}}
     continue-on-error: false
 
     steps:
