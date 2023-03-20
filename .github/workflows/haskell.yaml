@@ -67,8 +67,8 @@ jobs:
 
     - name: Configure and update
       run: |
-        "${CABAL[@]}" v2-configure
-        "${CABAL[@]}" v2-update
+        ${CABAL} v2-configure
+        ${CABAL} v2-update
     - name: Build
       run: |
-        "${CABAL[@]}" v2-build
+        ${CABAL} v2-build
