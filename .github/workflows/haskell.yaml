@@ -6,56 +6,70 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  config-dir: 'ci-configs'
 
 jobs:
+  enumerate:
+    name: Generate Build Matrix Dynamically
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.enumerate.outputs.configs }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Enumerate Configs
+      id: enumerate
+      run: |
+        set -euxo pipefail
+        find "${{env.config-dir}}"/ -type f -name 'ghc-*.config' \
+          | sort -h | jq -ncR '[inputs | {ghc:  match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.), plan: .}]' | tee configs.json
+        echo "configs=$(cat configs.json)" >> "${GITHUB_OUTPUT}"
   build:
+    name: Build
+    needs: [enumerate]
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["8.4.1", "8.6.3", "8.8.2", "8.10.3", "9.0.1", "9.2.5", "9.4.3"]
-        experimental: [false]
+        include: ${{fromJSON(needs.enumerate.outputs.configs)}}
     runs-on: ubuntu-latest
     env:
-      STACK_YAML: "stack-${{ matrix.ghc }}.yaml"
-    continue-on-error: ${{ matrix.experimental }}
+      CABAL: cabal --project-file=${{matrix.plan}}
+    continue-on-error: false
 
     steps:
     - uses: actions/checkout@v2
     - uses: haskell/actions/setup@v2
       with:
         ghc-version: ${{ matrix.ghc }}
-        enable-stack: true
-        stack-version: '2.9.1'
+        enable-stack: false
 
-    - name: Cache Global Stack
+    - name: Cache ~/.cabal/store
       uses: actions/cache@v2
       env:
-        cache-name: cache-global-stack
+        cache-name: cache-cabal-store
       with:
-        path: ~/.stack
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/*.hs') }}
+        path: ~/.cabal/store
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
 
-    - name: Cache Local Stack
+    - name: Cache dist-newstyle
       uses: actions/cache@v2
       env:
-        cache-name: cache-local-stack
+        cache-name: cache-dist-newstyle
       with:
-        path: "**/.stack-work"
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/*.hs') }}
+        path: "dist-newstyle"
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}-${{ hashFiles('**/*.hs') }}
         restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-${{ hashFiles('**/*.cabal', '${{matrix.plan}}') }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.ghc }}-
           ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
 
-    - name: Install dependencies
+    - name: Configure and update
       run: |
-        stack update
-        stack build --only-dependencies --test --no-run-tests
+        ${CABAL} v2-configure
+        ${CABAL} v2-update
     - name: Build
-      run: stack build
+      run: |
+        ${CABAL} v2-build
