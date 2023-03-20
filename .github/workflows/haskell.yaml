@@ -22,7 +22,7 @@ jobs:
       run: |
         set -euxo pipefail
         find "${{env.config-dir}}"/ -type f -name 'ghc-*.config' \
-          | sort -h | jq -ncR '[{ghc: inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.), plan: .}]' | tee configs.json
+          | sort -h | jq -ncR '[inputs | {ghc:  match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.), plan: .}]' | tee configs.json
         echo "configs=$(cat configs.json)" >> "${GITHUB_OUTPUT}"
   build:
     name: Build
