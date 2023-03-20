@@ -24,6 +24,7 @@ jobs:
           | jq -ncR '[inputs | match("ghc-(.+)\\.config$", .) | .captures[0].string | select(.)]' | tee configs.json
         echo "configs=$(cat configs.json)" >> "${GITHUB_OUTPUT}"
   build:
+    name: Build
     needs: [enumerate]
     strategy:
       fail-fast: false
