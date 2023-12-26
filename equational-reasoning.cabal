@@ -18,9 +18,10 @@ tested-with:
    || ==8.8.4
    || ==8.10.7
    || ==9.0.2
-   || ==9.2.7
-   || ==9.4.4
-   || ==9.6.1
+   || ==9.2.8
+   || ==9.4.8
+   || ==9.6.3
+   || ==9.8.1
 
 cabal-version: >=1.10
 
@@ -40,7 +41,7 @@ library
   build-depends:
       base              >=4    && <5
     , containers        >=0.5  && <0.7
-    , template-haskell  >=2.11 && <2.21
+    , template-haskell  >=2.11 && <2.22
     , void              >=0.6  && <0.8
 
   if impl(ghc >=8.4)
