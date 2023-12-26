@@ -45,7 +45,7 @@ library
     , void              >=0.6  && <0.8
 
   if impl(ghc >=8.4)
-    build-depends: th-desugar >=1.8 && <1.16
+    build-depends: th-desugar >=1.8 && <1.17
 
   else
     build-depends: semigroups ==0.18.*
