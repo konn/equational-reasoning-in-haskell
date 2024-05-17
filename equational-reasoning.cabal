@@ -1,4 +1,4 @@
-cabal-version: 3.2
+cabal-version: 3.0
 name: equational-reasoning
 version: 0.7.0.2
 synopsis: Proof assistant for Haskell using DataKinds & PolyKinds
