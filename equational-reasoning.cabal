@@ -1,6 +1,7 @@
 cabal-version: 3.4
 name: equational-reasoning
 version: 0.7.0.3
+x-revision: 1
 synopsis: Proof assistant for Haskell using DataKinds & PolyKinds
 description:
   A simple convenient library to write equational / preorder proof as in Agda.
@@ -35,7 +36,7 @@ library
   ghc-options: -Wall
   build-depends:
     base >=4 && <5,
-    containers >=0.5 && <0.7,
+    containers >=0.5 && <0.8,
     template-haskell >=2.11 && <2.23,
     th-desugar >=1.8 && <1.18,
     void >=0.6 && <0.8,
