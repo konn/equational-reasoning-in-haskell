@@ -1,12 +1,11 @@
 cabal-version: 3.4
 name: equational-reasoning
-version: 0.7.0.2
+version: 0.7.0.3
 synopsis: Proof assistant for Haskell using DataKinds & PolyKinds
 description:
   A simple convenient library to write equational / preorder proof as in Agda.
   Since 0.6.0.0, this no longer depends on @singletons@ package, and the @Proof.Induction@ module goes to @equational-reasoning-induction@ package.
 
-x-rivision: 2
 license: BSD-3-Clause
 license-file: LICENSE
 author: Hiromi ISHII
