@@ -5,6 +5,7 @@ description:
   A simple convenient library to write equational / preorder proof as in Agda.
   Since 0.6.0.0, this no longer depends on @singletons@ package, and the @Proof.Induction@ module goes to @equational-reasoning-induction@ package.
 
+x-rivision: 1
 license:       BSD3
 license-file:  LICENSE
 author:        Hiromi ISHII
