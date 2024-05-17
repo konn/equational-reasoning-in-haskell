@@ -1,28 +1,27 @@
-name:          equational-reasoning
-version:       0.7.0.2
-synopsis:      Proof assistant for Haskell using DataKinds & PolyKinds
+cabal-version: 3.4
+name: equational-reasoning
+version: 0.7.0.3
+synopsis: Proof assistant for Haskell using DataKinds & PolyKinds
 description:
   A simple convenient library to write equational / preorder proof as in Agda.
   Since 0.6.0.0, this no longer depends on @singletons@ package, and the @Proof.Induction@ module goes to @equational-reasoning-induction@ package.
 
-license:       BSD3
-license-file:  LICENSE
-author:        Hiromi ISHII
-maintainer:    konn.jinro_at_gmail.com
-copyright:     (c) Hiromi ISHII 2013-2020
-category:      Math
-build-type:    Simple
+license: BSD-3-Clause
+license-file: LICENSE
+author: Hiromi ISHII
+maintainer: konn.jinro_at_gmail.com
+copyright: (c) Hiromi ISHII 2013-2020
+category: Math
+build-type: Simple
 tested-with:
-  GHC ==9.0.2
-   || ==9.2.8
-   || ==9.4.8
-   || ==9.6.3
-   || ==9.8.1
+  ghc ==9.0.2 || ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.2
 
-cabal-version: >=1.10
+extra-doc-files:
+  Changelog.md
+  README.md
 
 source-repository head
-  type:     git
+  type: git
   location: git://github.com/konn/equational-reasoning-in-haskell.git
 
 library
@@ -32,13 +31,13 @@ library
     Proof.Propositional.Empty
     Proof.Propositional.Inhabited
 
-  other-modules:    Proof.Propositional.TH
-  ghc-options:      -Wall
+  other-modules: Proof.Propositional.TH
+  ghc-options: -Wall
   build-depends:
-      base              >=4    && <5
-    , containers        >=0.5  && <0.7
-    , template-haskell  >=2.11 && <2.22
-    , void              >=0.6  && <0.8
-    , th-desugar >=1.8 && <1.17
+    base >=4 && <5,
+    containers >=0.5 && <0.7,
+    template-haskell >=2.11 && <2.23,
+    th-desugar >=1.8 && <1.18,
+    void >=0.6 && <0.8,
 
   default-language: Haskell2010

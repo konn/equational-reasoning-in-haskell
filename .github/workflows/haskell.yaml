@@ -16,7 +16,7 @@ jobs:
     outputs:
       configs: ${{ steps.enumerate.outputs.configs }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Enumerate Configs
       id: enumerate
       run: |
@@ -37,8 +37,8 @@ jobs:
     continue-on-error: false
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v2
+    - uses: actions/checkout@v4
+    - uses: haskell-actions/setup@v2
       with:
         ghc-version: ${{ matrix.ghc }}
         enable-stack: false
