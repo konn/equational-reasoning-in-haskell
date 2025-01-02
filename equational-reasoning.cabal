@@ -36,7 +36,7 @@ library
   build-depends:
     base >=4.13 && <5,
     containers >=0.5 && <0.8,
-    template-haskell >=2.11 && <2.23,
+    template-haskell >=2.11 && <2.24,
     th-desugar >=1.13 && <1.19,
     void >=0.6 && <0.8,
 
