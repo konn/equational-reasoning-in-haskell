@@ -25,6 +25,7 @@ source-repository head
   location: git://github.com/konn/equational-reasoning-in-haskell.git
 
 library
+  -- cabal-gild: discover ./Proof/**/*.hs --exclude Proof/Propositional/TH.hs
   exposed-modules:
     Proof.Equational
     Proof.Propositional
