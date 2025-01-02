@@ -32,6 +32,8 @@ import Proof.Propositional.Inhabited
 
 #if MIN_VERSION_th_desugar(1,18,0)
 import Language.Haskell.TH.Desugar (dLamE, dCaseE)
+#else
+import Language.Haskell.TH.Desugar (DMatch)
 #endif
 
 mkDInstanceD ::
