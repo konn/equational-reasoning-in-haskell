@@ -16,32 +16,31 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Provides type synonyms for logical connectives.
-module Proof.Propositional
-  ( type (/\),
-    type (\/),
-    Not,
-    exfalso,
-    orIntroL,
-    orIntroR,
-    orElim,
-    andIntro,
-    andElimL,
-    andElimR,
-    orAssocL,
-    orAssocR,
-    andAssocL,
-    andAssocR,
-    IsTrue (..),
-    withWitness,
-    Empty (..),
-    withEmpty,
-    withEmpty',
-    refute,
-    Inhabited (..),
-    withInhabited,
-    prove,
-  )
-where
+module Proof.Propositional (
+  type (/\),
+  type (\/),
+  Not,
+  exfalso,
+  orIntroL,
+  orIntroR,
+  orElim,
+  andIntro,
+  andElimL,
+  andElimR,
+  orAssocL,
+  orAssocR,
+  andAssocL,
+  andAssocR,
+  IsTrue (..),
+  withWitness,
+  Empty (..),
+  withEmpty,
+  withEmpty',
+  refute,
+  Inhabited (..),
+  withInhabited,
+  prove,
+) where
 
 import Data.Data (Data)
 import Data.Type.Equality (gcastWith, (:~:) (..))
@@ -105,7 +104,7 @@ orAssocR (Right c) = Right (Right c)
 data IsTrue (b :: Bool) where
   Witness :: IsTrue 'True
 
-withWitness :: forall b r. IsTrue b -> (b ~ 'True => r) -> r
+withWitness :: forall b r. IsTrue b -> ((b ~ 'True) => r) -> r
 withWitness _ = gcastWith (unsafeCoerce (Refl :: () :~: ()) :: b :~: 'True)
 {-# NOINLINE withWitness #-}
 
@@ -126,14 +125,14 @@ instance {-# OVERLAPPABLE #-} (Inhabited a, Empty b) => Empty (a -> b) where
 
 refute [t|0 :~: 1|]
 refute [t|() :~: Int|]
-refute [t| 'True :~: 'False|]
-refute [t| 'False :~: 'True|]
-refute [t| 'LT :~: 'GT|]
-refute [t| 'LT :~: 'EQ|]
-refute [t| 'EQ :~: 'LT|]
-refute [t| 'EQ :~: 'GT|]
-refute [t| 'GT :~: 'LT|]
-refute [t| 'GT :~: 'EQ|]
+refute [t|'True :~: 'False|]
+refute [t|'False :~: 'True|]
+refute [t|'LT :~: 'GT|]
+refute [t|'LT :~: 'EQ|]
+refute [t|'EQ :~: 'LT|]
+refute [t|'EQ :~: 'GT|]
+refute [t|'GT :~: 'LT|]
+refute [t|'GT :~: 'EQ|]
 
 prove [t|Bool|]
 prove [t|Int|]
@@ -150,4 +149,4 @@ prove [t|forall n. n :~: n|]
 prove [t|IsTrue 'True|]
 
 instance Empty (IsTrue 'False) where
-  eliminate = \case
+  eliminate = \case {}
