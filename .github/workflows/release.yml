@@ -1,0 +1,29 @@
+name: Release
+on:
+  push:
+    tags:
+    - "v[0-9]*"
+
+jobs:
+  hackage-release:
+    name: Release to Hackage
+    if: >
+      github.event_name == 'push'
+      && startsWith(github.ref, 'refs/tags/')
+    environment: hackage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: haskell-actions/setup@v2
+      with:
+        cabal-version: 3.12.1.0
+        enable-stack: false
+    - name: Cabal Check
+      run: cabal check
+    - name: Create tarball
+      run: cabal sdist
+    - uses: haskell-actions/hackage-publish@v1
+      with:
+        hackageToken: ${{ secrets.HACKAGE_ACCESS_TOKEN }}
+        packagesPath: dist-newstyle/sdist
+        publish: false
